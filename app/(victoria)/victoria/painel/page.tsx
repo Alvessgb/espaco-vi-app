@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { AdminStatCard } from "@/components/ds/admin-stat-card";
-import { Calendar, CheckCircle, TrendingUp, XCircle, Clock } from "lucide-react";
+import { Calendar, CircleCheck, TrendingUp, CircleX, Clock, Star } from "lucide-react";
 import Link from "next/link";
 
 function formatPrice(cents: number) {
@@ -81,7 +81,7 @@ export default async function PainelPage() {
         <AdminStatCard
           label="Concluídos no mês"
           value={completedThisMonth}
-          icon={<CheckCircle size={16} strokeWidth={1.5} />}
+          icon={<CircleCheck size={16} strokeWidth={1.5} />}
         />
         <AdminStatCard
           label="Receita do mês (taxas)"
@@ -91,7 +91,7 @@ export default async function PainelPage() {
         <AdminStatCard
           label="Cancelamentos no mês"
           value={cancelledThisMonth}
-          icon={<XCircle size={16} strokeWidth={1.5} />}
+          icon={<CircleX size={16} strokeWidth={1.5} />}
         />
       </div>
 
@@ -130,7 +130,11 @@ export default async function PainelPage() {
                   <span className="font-poppins text-sm font-medium text-[#3D2B1F]">
                     {r.user.name?.split(" ")[0] ?? "Cliente"}
                   </span>
-                  <span className="font-poppins text-xs text-[#8B6B5A]">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                  <span className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={11} strokeWidth={1.5} className={i < r.rating ? "text-[#5F4B3C] fill-[#5F4B3C]" : "text-[#D4B49A]"} />
+                    ))}
+                  </span>
                 </div>
                 {r.comment && (
                   <p className="font-poppins text-xs text-[#8B6B5A] line-clamp-2">{r.comment}</p>

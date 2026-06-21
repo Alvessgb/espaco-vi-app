@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { CheckCircle, Clock, Calendar } from "lucide-react";
+import { CircleCheck, Clock, Calendar } from "lucide-react";
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -55,7 +55,7 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
       <div className="max-w-lg mx-auto px-4 py-10 flex flex-col items-center gap-6">
         {/* Success icon */}
         <div className="flex flex-col items-center gap-2 text-center">
-          <CheckCircle size={56} strokeWidth={1.5} className="text-[#4CAF50]" />
+          <CircleCheck size={56} strokeWidth={1.5} className="text-[#4CAF50]" />
           <h1 className="text-2xl font-bold text-[#3D2B1F]">
             Agendamento confirmado 🌸
           </h1>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, ShoppingBag, Search, Menu, X, ChevronRight } from "lucide-react";
+import { Clock, ShoppingBag, Search, Menu, X, ChevronRight, LayoutGrid, User, CalendarDays, Settings } from "lucide-react";
 import { addToCart, removeFromCart, getCart } from "@/lib/cart";
 import { Drawer } from "antd";
 
@@ -97,9 +97,10 @@ export function CatalogClient({ procedures, categories }: Props) {
   );
 
   const navItems = [
-    { icon: "☆", label: "Catálogo de serviços", href: "/procedimentos" },
-    { icon: "👤", label: "Minha conta", href: "/conta" },
-    { icon: "📅", label: "Meus agendamentos", href: "/meus-agendamentos" },
+    { icon: <LayoutGrid size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Catálogo de serviços", href: "/procedimentos" },
+    { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Minha conta", href: "/conta" },
+    { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Meus agendamentos", href: "/meus-agendamentos" },
+    { icon: <Settings size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Área da Victoria", href: "/victoria" },
   ];
 
   return (
@@ -120,7 +121,7 @@ export function CatalogClient({ procedures, categories }: Props) {
               className="relative w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white"
               aria-label="Ver carrinho"
             >
-              <ShoppingBag size={16} />
+              <ShoppingBag size={16} strokeWidth={1.5} />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#5F4B3C] text-[10px] flex items-center justify-center font-bold">
                   {cartCount}
@@ -283,7 +284,7 @@ export function CatalogClient({ procedures, categories }: Props) {
                 className="flex items-center justify-between px-5 py-4 hover:bg-[#EDD9C5] transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{item.icon}</span>
+                  <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
                   <span className="text-[#3D2B1F] font-medium text-sm">{item.label}</span>
                 </div>
                 <ChevronRight size={16} strokeWidth={1.5} className="text-[#8B6B5A]" />

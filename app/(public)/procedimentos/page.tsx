@@ -33,8 +33,8 @@ export default async function ProcedimentosPage() {
       }));
       categories = cats;
     }
-  } catch {
-    // DB not configured yet — show empty catalog
+  } catch (err) {
+    console.error("[procedimentos] DB error:", err);
   }
 
   return <CatalogClient procedures={procedures} categories={categories} />;
