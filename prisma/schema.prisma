@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== AUTH.JS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(CUSTOMER)
+  phone         String?
+  birthDate     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  appointments Appointment[]
+  reviews      Review[]
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ==================== PROCEDURES ====================
+
+model ProcedureCategory {
+  id         String      @id @default(cuid())
+  name       String
+  slug       String      @unique
+  order      Int         @default(0)
+  procedures Procedure[]
+}
+
+model Procedure {
+  id               String          @id @default(cuid())
+  categoryId       String
+  name             String
+  slug             String          @unique
+  shortDescription String?
+  description      String?         @db.Text
+  priceInCents     Int
+  durationMinutes  Int
+  badge            String?
+  indicatedFor     String?         @db.Text
+  expectedResult   String?         @db.Text
+  beforeCare       String?         @db.Text
+  afterCare        String?         @db.Text
+  internalNotes    String?         @db.Text
+  status           ProcedureStatus @default(ACTIVE)
+  order            Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  category              ProcedureCategory      @relation(fields: [categoryId], references: [id])
+  images                ProcedureImage[]
+  appointmentProcedures AppointmentProcedure[]
+}
+
+enum ProcedureStatus {
+  ACTIVE
+  UNAVAILABLE
+  MISSING_PHOTO
+  PRICE_TO_CONFIRM
+  REMOVED
+}
+
+model ProcedureImage {
+  id          String  @id @default(cuid())
+  procedureId String
+  url         String
+  isPrimary   Boolean @default(false)
+  order       Int     @default(0)
+
+  procedure Procedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+}
+
+// ==================== APPOINTMENTS ====================
+
+model Appointment {
+  id                String            @id @default(cuid())
+  userId            String
+  startTime         DateTime
+  endTime           DateTime
+  totalPriceInCents Int
+  durationMinutes   Int
+  status            AppointmentStatus @default(PENDING_PAYMENT)
+  notes             String?           @db.Text
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  user       User                   @relation(fields: [userId], references: [id])
+  procedures AppointmentProcedure[]
+  payment    Payment?
+  review     Review?
+}
+
+enum AppointmentStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+  NO_SHOW
+}
+
+model AppointmentProcedure {
+  id              String @id @default(cuid())
+  appointmentId   String
+  procedureId     String
+  priceInCents    Int
+  durationMinutes Int
+  name            String
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  procedure   Procedure   @relation(fields: [procedureId], references: [id])
+}
+
+// ==================== SCHEDULE ====================
+
+model ScheduleBlock {
+  id        String              @id @default(cuid())
+  type      ScheduleBlockType
+  reason    ScheduleBlockReason
+  note      String?
+  startTime DateTime
+  endTime   DateTime
+  createdAt DateTime            @default(now())
+}
+
+enum ScheduleBlockType {
+  TIME_RANGE
+  FULL_DAY
+}
+
+enum ScheduleBlockReason {
+  DAY_OFF
+  PERSONAL_COMMITMENT
+  COURSE
+  SPACE_MAINTENANCE
+  RESERVED_TIME
+  OTHER
+}
+
+// ==================== PAYMENT ====================
+
+model Payment {
+  id                  String        @id @default(cuid())
+  appointmentId       String        @unique
+  amountInCents       Int           @default(3000)
+  status              PaymentStatus @default(PENDING)
+  stripeSessionId     String?       @unique
+  stripePaymentIntent String?
+  paidAt              DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  id            String   @id @default(cuid())
+  userId        String
+  appointmentId String   @unique
+  rating        Int
+  comment       String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+}
