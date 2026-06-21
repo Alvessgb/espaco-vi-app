@@ -55,7 +55,7 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
       <div className="max-w-lg mx-auto px-4 py-10 flex flex-col items-center gap-6">
         {/* Success icon */}
         <div className="flex flex-col items-center gap-2 text-center">
-          <CheckCircle size={56} className="text-[#4CAF50]" />
+          <CheckCircle size={56} strokeWidth={1.5} className="text-[#4CAF50]" />
           <h1 className="text-2xl font-bold text-[#3D2B1F]">
             Agendamento confirmado 🌸
           </h1>
@@ -69,11 +69,11 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
           {/* Date & time */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-sm text-[#5F4B3C]">
-              <Calendar size={15} className="shrink-0" />
+              <Calendar size={15} strokeWidth={1.5} className="shrink-0" />
               <span className="capitalize">{formattedDate}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-[#5F4B3C]">
-              <Clock size={15} className="shrink-0" />
+              <Clock size={15} strokeWidth={1.5} className="shrink-0" />
               <span>
                 {formattedTime} · {formatDuration(appointment.durationMinutes)}
               </span>

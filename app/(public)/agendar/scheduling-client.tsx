@@ -101,12 +101,12 @@ export function SchedulingClient() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#5F4B3C] px-4 py-3 flex items-center">
         <Link href="/carrinho" className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white shrink-0">
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} strokeWidth={1.5} />
         </Link>
         <div className="flex-1 text-center mx-3">
           <p className="text-white font-bold text-base leading-tight">Data e horário</p>
           <p className="text-white/70 text-xs leading-tight flex items-center justify-center gap-1">
-            <Clock size={11} /> Duração total: {formatDuration(duration)}
+            <Clock size={11} strokeWidth={1.5} /> Duração total: {formatDuration(duration)}
           </p>
         </div>
         <div className="w-9" />
@@ -129,7 +129,7 @@ export function SchedulingClient() {
               onClick={prevMonth}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F5EBE0] text-[#5F4B3C] transition-colors"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={18} strokeWidth={1.5} />
             </button>
             <span className="text-sm font-bold text-[#3D2B1F]">
               {MONTHS[viewMonth]} {viewYear}
@@ -138,7 +138,7 @@ export function SchedulingClient() {
               onClick={nextMonth}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F5EBE0] text-[#5F4B3C] transition-colors"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={18} strokeWidth={1.5} />
             </button>
           </div>
 

@@ -78,7 +78,7 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
           href="/procedimentos"
           className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-[#3D2B1F] shadow-sm"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18} strokeWidth={1.5} />
         </Link>
 
         {/* Cart button */}
@@ -86,7 +86,7 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
           href="/carrinho"
           className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-[#3D2B1F] shadow-sm"
         >
-          <ShoppingBag size={18} />
+          <ShoppingBag size={18} strokeWidth={1.5} />
         </Link>
 
         {/* Badge bottom-left */}
@@ -113,7 +113,7 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
               {formatPrice(procedure.priceInCents)}
             </span>
             <span className="border border-[#E0C5AC] text-[#5F4B3C] px-3 py-1.5 rounded-full text-xs flex items-center gap-1">
-              <Clock size={12} />
+              <Clock size={12} strokeWidth={1.5} />
               {formatDuration(procedure.durationMinutes)}
             </span>
           </div>
@@ -144,7 +144,7 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
                 {benefits.map((benefit, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="w-5 h-5 rounded-full bg-[#F5EBE0] flex items-center justify-center shrink-0 mt-0.5">
-                      <Check size={11} className="text-[#5F4B3C]" />
+                      <Check size={11} strokeWidth={1.5} className="text-[#5F4B3C]" />
                     </span>
                     <span className="text-sm text-[#5F4B3C]">{benefit}</span>
                   </li>

@@ -50,7 +50,7 @@ export function CartPageClient() {
         {/* Header */}
         <header className="sticky top-0 z-50 bg-[#5F4B3C] px-4 py-3 flex items-center gap-3">
           <Link href="/procedimentos" className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white">
-            <ArrowLeft size={16} />
+            <ArrowLeft size={16} strokeWidth={1.5} />
           </Link>
           <div className="flex-1 text-center">
             <p className="text-white font-bold text-base">Minha sacola</p>
@@ -82,7 +82,7 @@ export function CartPageClient() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#5F4B3C] px-4 py-3 flex items-center">
         <Link href="/procedimentos" className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white shrink-0">
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} strokeWidth={1.5} />
         </Link>
         <div className="flex-1 text-center mx-3">
           <p className="text-white font-bold text-base leading-tight">Minha sacola</p>
@@ -112,7 +112,7 @@ export function CartPageClient() {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#3D2B1F] text-sm leading-tight truncate">{item.name}</p>
                 <p className="text-[#8B6B5A] text-xs flex items-center gap-1 mt-0.5">
-                  <Clock size={10} />
+                  <Clock size={10} strokeWidth={1.5} />
                   {formatDuration(item.durationMinutes)}
                 </p>
                 <p className="font-bold text-[#5F4B3C] text-sm mt-0.5">{formatPrice(item.priceInCents)}</p>
@@ -122,7 +122,7 @@ export function CartPageClient() {
                 className="w-8 h-8 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors shrink-0"
                 aria-label="Remover"
               >
-                <Trash2 size={15} />
+                <Trash2 size={15} strokeWidth={1.5} />
               </button>
             </div>
           );
@@ -142,7 +142,7 @@ export function CartPageClient() {
           <div className="flex items-center justify-between py-2">
             <span className="text-sm text-[#8B6B5A]">Duração total</span>
             <span className="text-sm text-[#3D2B1F] font-medium flex items-center gap-1">
-              <Clock size={13} /> {formatDuration(totalDurationMinutes)}
+              <Clock size={13} strokeWidth={1.5} /> {formatDuration(totalDurationMinutes)}
             </span>
           </div>
           <div className="flex items-center justify-between py-2">
@@ -159,7 +159,7 @@ export function CartPageClient() {
         {/* Info banner */}
         <div className="flex items-start gap-3 bg-white/60 rounded-2xl p-4">
           <div className="w-7 h-7 rounded-full bg-[#E0C5AC] flex items-center justify-center shrink-0 mt-0.5">
-            <Info size={14} className="text-[#5F4B3C]" />
+            <Info size={14} strokeWidth={1.5} className="text-[#5F4B3C]" />
           </div>
           <p className="text-xs text-[#5F4B3C] leading-relaxed">
             A taxa de <strong>R$ 30 confirma seu horário</strong> e será abatida do valor total no dia do atendimento.
@@ -188,7 +188,7 @@ export function CartPageClient() {
             className="w-full bg-[#5F4B3C] text-white rounded-full py-3.5 text-sm font-semibold hover:bg-[#4a3a2d] transition-colors flex items-center justify-center gap-2"
           >
             Escolher data e horário
-            <ChevronRight size={16} />
+            <ChevronRight size={16} strokeWidth={1.5} />
           </button>
         </div>
       </div>

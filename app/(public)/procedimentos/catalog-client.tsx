@@ -113,7 +113,7 @@ export function CatalogClient({ procedures, categories }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <button className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white">
-              <Search size={16} />
+              <Search size={16} strokeWidth={1.5} />
             </button>
             <Link
               href="/carrinho"
@@ -132,7 +132,7 @@ export function CatalogClient({ procedures, categories }: Props) {
               className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white"
               aria-label="Menu"
             >
-              <Menu size={16} />
+              <Menu size={16} strokeWidth={1.5} />
             </button>
           </div>
         </div>
@@ -208,7 +208,7 @@ export function CatalogClient({ procedures, categories }: Props) {
                     )}
                     {/* Duration badge bottom-right */}
                     <span className="absolute bottom-3 right-3 bg-white text-[#5F4B3C] text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
-                      <Clock size={11} />
+                      <Clock size={11} strokeWidth={1.5} />
                       {formatDuration(p.durationMinutes)}
                     </span>
                   </div>
@@ -270,7 +270,7 @@ export function CatalogClient({ procedures, categories }: Props) {
               onClick={() => setMenuOpen(false)}
               className="w-9 h-9 rounded-full bg-[#E0C5AC] flex items-center justify-center text-[#5F4B3C]"
             >
-              <X size={16} />
+              <X size={16} strokeWidth={1.5} />
             </button>
           </div>
           <div className="h-px bg-[#E0C5AC] mx-5" />
@@ -286,7 +286,7 @@ export function CatalogClient({ procedures, categories }: Props) {
                   <span className="text-xl">{item.icon}</span>
                   <span className="text-[#3D2B1F] font-medium text-sm">{item.label}</span>
                 </div>
-                <ChevronRight size={16} className="text-[#8B6B5A]" />
+                <ChevronRight size={16} strokeWidth={1.5} className="text-[#8B6B5A]" />
               </Link>
             ))}
           </nav>

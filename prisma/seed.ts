@@ -10,10 +10,8 @@ function FAQ(items: { q: string; a: string }[]): string {
   return JSON.stringify(items.map((i) => ({ question: i.q, answer: i.a })));
 }
 
-const CILIOS_IMG = "https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg";
-const SOBRANCELHA_IMG = "https://images.pexels.com/photos/2533165/pexels-photo-2533165.jpeg";
-const PELE_IMG = "https://images.pexels.com/photos/3760514/pexels-photo-3760514.jpeg";
-const PLACEHOLDER = "https://placehold.co/800x600/E0C5AC/5F4B3C?text=Espa%C3%A7o+Vi";
+const PLACEHOLDER = "https://placehold.co/800x600/E0C5AC/5F4B3C?text=Não+Realizado";
+const COMBO_IMG = "https://images.pexels.com/photos/3738364/pexels-photo-3738364.jpeg?auto=compress&cs=tinysrgb&w=800";
 
 const BEFORE_CILIOS = "• Chegar com os olhos limpos e sem maquiagem\n• Retirar lentes de contato antes\n• Evitar usar curvex no dia anterior\n• Não usar produtos oleosos na região dos olhos";
 const AFTER_CILIOS = "• Evitar molhar os cílios por 24h\n• Não esfregar os olhos\n• Escovar os fios suavemente todo dia\n• Evitar produtos oleosos perto dos olhos";
@@ -133,7 +131,7 @@ async function main() {
         },
       ]),
       order: 1,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -172,7 +170,7 @@ async function main() {
         },
       ]),
       order: 2,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3997992/pexels-photo-3997992.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -212,7 +210,7 @@ async function main() {
         },
       ]),
       order: 3,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -252,7 +250,7 @@ async function main() {
         },
       ]),
       order: 4,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/4737484/pexels-photo-4737484.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -322,7 +320,7 @@ async function main() {
       ]),
       faqJson: FAQ_CILIOS_PADRAO,
       order: 6,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3373747/pexels-photo-3373747.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -362,7 +360,7 @@ async function main() {
         },
       ]),
       order: 7,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/2253832/pexels-photo-2253832.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -402,7 +400,7 @@ async function main() {
         },
       ]),
       order: 8,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3065209/pexels-photo-3065209.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -441,7 +439,7 @@ async function main() {
         },
       ]),
       order: 9,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/4046316/pexels-photo-4046316.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -481,7 +479,7 @@ async function main() {
         },
       ]),
       order: 10,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/5938395/pexels-photo-5938395.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["cilios"],
@@ -520,7 +518,7 @@ async function main() {
         },
       ]),
       order: 11,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/5632402/pexels-photo-5632402.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
 
     // ==================== MANUTENÇÕES ====================
@@ -549,7 +547,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 1,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3997992/pexels-photo-3997992.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -576,7 +574,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 2,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -603,7 +601,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 3,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -630,7 +628,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 4,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/4737484/pexels-photo-4737484.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -657,7 +655,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 5,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3373747/pexels-photo-3373747.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -684,7 +682,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 6,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/2253832/pexels-photo-2253832.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -711,7 +709,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 7,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/3065209/pexels-photo-3065209.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -738,7 +736,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 8,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/4046316/pexels-photo-4046316.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["manutencao-cilios"],
@@ -768,7 +766,7 @@ async function main() {
       ]),
       faqJson: FAQ_MANUTENCAO,
       order: 9,
-      imageUrl: CILIOS_IMG,
+      imageUrl: "https://images.pexels.com/photos/5938395/pexels-photo-5938395.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
 
     // ==================== COMBOS ====================
@@ -808,7 +806,7 @@ async function main() {
         },
       ]),
       order: 1,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
     {
       categoryId: categories["combos"],
@@ -846,7 +844,7 @@ async function main() {
         },
       ]),
       order: 2,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
     {
       categoryId: categories["combos"],
@@ -884,7 +882,7 @@ async function main() {
         },
       ]),
       order: 3,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
     {
       categoryId: categories["combos"],
@@ -922,7 +920,7 @@ async function main() {
         },
       ]),
       order: 4,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
     {
       categoryId: categories["combos"],
@@ -960,7 +958,7 @@ async function main() {
         },
       ]),
       order: 5,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
     {
       categoryId: categories["combos"],
@@ -998,7 +996,7 @@ async function main() {
         },
       ]),
       order: 6,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
     {
       categoryId: categories["combos"],
@@ -1075,7 +1073,7 @@ async function main() {
         },
       ]),
       order: 8,
-      imageUrl: CILIOS_IMG,
+      imageUrl: COMBO_IMG,
     },
 
     // ==================== SOBRANCELHAS ====================
@@ -1118,7 +1116,7 @@ async function main() {
         },
       ]),
       order: 1,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/2533165/pexels-photo-2533165.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["sobrancelhas"],
@@ -1160,7 +1158,7 @@ async function main() {
         },
       ]),
       order: 2,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/4612438/pexels-photo-4612438.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["sobrancelhas"],
@@ -1201,7 +1199,7 @@ async function main() {
         },
       ]),
       order: 3,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/6663359/pexels-photo-6663359.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["sobrancelhas"],
@@ -1238,7 +1236,7 @@ async function main() {
         },
       ]),
       order: 4,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/6663574/pexels-photo-6663574.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["sobrancelhas"],
@@ -1277,7 +1275,7 @@ async function main() {
         },
       ]),
       order: 5,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/4612440/pexels-photo-4612440.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["sobrancelhas"],
@@ -1319,7 +1317,7 @@ async function main() {
         },
       ]),
       order: 6,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/6663362/pexels-photo-6663362.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["sobrancelhas"],
@@ -1360,7 +1358,7 @@ async function main() {
         },
       ]),
       order: 7,
-      imageUrl: SOBRANCELHA_IMG,
+      imageUrl: "https://images.pexels.com/photos/2533165/pexels-photo-2533165.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
 
     // ==================== PELE ====================
@@ -1403,7 +1401,7 @@ async function main() {
         },
       ]),
       order: 1,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/3760514/pexels-photo-3760514.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["pele"],
@@ -1445,7 +1443,7 @@ async function main() {
         },
       ]),
       order: 2,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/3985329/pexels-photo-3985329.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["pele"],
@@ -1486,7 +1484,7 @@ async function main() {
         },
       ]),
       order: 3,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/3765146/pexels-photo-3765146.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["pele"],
@@ -1527,7 +1525,7 @@ async function main() {
         },
       ]),
       order: 4,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/3738352/pexels-photo-3738352.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["pele"],
@@ -1569,7 +1567,7 @@ async function main() {
         },
       ]),
       order: 5,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/4586979/pexels-photo-4586979.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["pele"],
@@ -1611,7 +1609,7 @@ async function main() {
         },
       ]),
       order: 6,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/3985332/pexels-photo-3985332.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       categoryId: categories["pele"],
@@ -1653,7 +1651,7 @@ async function main() {
         },
       ]),
       order: 7,
-      imageUrl: PELE_IMG,
+      imageUrl: "https://images.pexels.com/photos/5069397/pexels-photo-5069397.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
 
     // ==================== NÃO REALIZADOS ====================

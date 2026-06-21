@@ -71,6 +71,19 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Demo mode: skip Stripe if no secret key configured
+  if (!process.env.STRIPE_SECRET_KEY) {
+    await db.appointment.update({
+      where: { id: appointment.id },
+      data: { status: "CONFIRMED" },
+    });
+    await db.payment.update({
+      where: { appointmentId: appointment.id },
+      data: { status: "PAID", paidAt: new Date() },
+    });
+    return NextResponse.json({ url: `/agendamento-confirmado?appointmentId=${appointment.id}` });
+  }
+
   // Create Stripe session
   const stripeSession = await createBookingFeeCheckoutSession({
     appointmentId: appointment.id,

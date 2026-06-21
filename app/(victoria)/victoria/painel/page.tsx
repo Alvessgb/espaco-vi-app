@@ -71,27 +71,27 @@ export default async function PainelPage() {
         <AdminStatCard
           label="Próximos agendamentos"
           value={upcomingCount}
-          icon={<Calendar size={16} />}
+          icon={<Calendar size={16} strokeWidth={1.5} />}
         />
         <AdminStatCard
           label="Atendimentos hoje"
           value={todayCount}
-          icon={<Clock size={16} />}
+          icon={<Clock size={16} strokeWidth={1.5} />}
         />
         <AdminStatCard
           label="Concluídos no mês"
           value={completedThisMonth}
-          icon={<CheckCircle size={16} />}
+          icon={<CheckCircle size={16} strokeWidth={1.5} />}
         />
         <AdminStatCard
           label="Receita do mês (taxas)"
           value={formatPrice(revenueThisMonth)}
-          icon={<TrendingUp size={16} />}
+          icon={<TrendingUp size={16} strokeWidth={1.5} />}
         />
         <AdminStatCard
           label="Cancelamentos no mês"
           value={cancelledThisMonth}
-          icon={<XCircle size={16} />}
+          icon={<XCircle size={16} strokeWidth={1.5} />}
         />
       </div>
 
