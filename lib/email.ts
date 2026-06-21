@@ -1,6 +1,12 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY!);
+  }
+  return _resend;
+}
 
 const FROM = process.env.EMAIL_FROM ?? "Espaço Vi <noreply@espacovi.com.br>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -82,7 +88,7 @@ export async function sendBookingConfirmationToClient(data: {
     <a href="${APP_URL}/meus-agendamentos" class="btn">Ver meus agendamentos</a>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: data.to,
     subject: "Agendamento confirmado no Espaço Vi! 🌸",
@@ -126,7 +132,7 @@ export async function sendNewBookingToVictoria(data: {
     <a href="${APP_URL}/victoria/agenda/dia" class="btn">Ver agenda</a>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: VICTORIA_EMAIL,
     subject: `Novo agendamento: ${data.clientName} — ${data.date} às ${data.time}`,
@@ -147,7 +153,7 @@ export async function sendReviewRequest(data: {
     <p style="margin-top:16px;font-size:12px;">Com carinho,<br/>Victoria — Espaço Vi</p>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: data.to,
     subject: "Como foi seu atendimento no Espaço Vi? 💛",
@@ -162,7 +168,7 @@ export async function sendAppointmentConfirmedEmail(
   date: string,
   services: string[]
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: "Seu agendamento foi confirmado! 🌸",
@@ -181,7 +187,7 @@ export async function sendAppointmentCancelledEmail(
   name: string,
   date: string
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: "Agendamento cancelado",
@@ -200,7 +206,7 @@ export async function sendAppointmentReminderEmail(
   date: string,
   services: string[]
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: "Lembrete: seu agendamento é amanhã!",

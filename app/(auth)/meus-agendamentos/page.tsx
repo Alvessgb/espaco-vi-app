@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { AppointmentCard } from "@/components/ds/appointment-card";
 import type { AppointmentStatus } from "@/components/ds/status-badge";
+import type { AppointmentStatus as PrismaAppointmentStatus } from "@prisma/client";
 
 export default async function MeusAgendamentosPage({
   searchParams,
@@ -12,16 +13,17 @@ export default async function MeusAgendamentosPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  const userId = session.user.id!;
 
   const { tab } = await searchParams;
   const activeTab = tab === "historico" ? "historico" : "proximos";
 
-  const upcomingStatuses = ["PENDING_PAYMENT", "CONFIRMED"];
-  const historyStatuses = ["COMPLETED", "CANCELLED", "NO_SHOW"];
+  const upcomingStatuses: PrismaAppointmentStatus[] = ["PENDING_PAYMENT", "CONFIRMED"];
+  const historyStatuses: PrismaAppointmentStatus[] = ["COMPLETED", "CANCELLED", "NO_SHOW"];
 
   const appointments = await db.appointment.findMany({
     where: {
-      userId: session.user.id,
+      userId,
       status: {
         in: activeTab === "proximos"
           ? upcomingStatuses
