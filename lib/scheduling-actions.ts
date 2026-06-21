@@ -9,8 +9,8 @@ export async function getSlotsForDate(
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return [];
 
-  // Skip Sundays (0)
-  if (date.getDay() === 0) return [];
+  // Skip Sundays (0) and Mondays (1) — Espaço Vi: Ter–Sáb
+  if (date.getDay() === 0 || date.getDay() === 1) return [];
 
   return filtrarSlotsDisponiveis(date, totalDurationMinutes);
 }

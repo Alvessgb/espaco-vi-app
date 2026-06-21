@@ -115,11 +115,11 @@ export function CheckoutClient({ date, time, user }: Props) {
       {/* Date & time */}
       <div className="bg-white rounded-2xl border border-[#E0C5AC] p-5 shadow-sm flex flex-col gap-3">
         <div className="flex items-center gap-3 text-sm text-[#5F4B3C]">
-          <Calendar size={16} className="shrink-0" />
+          <Calendar size={16} strokeWidth={1.5} className="shrink-0" />
           <span className="capitalize">{formatDate(date)}</span>
         </div>
         <div className="flex items-center gap-3 text-sm text-[#5F4B3C]">
-          <Clock size={16} className="shrink-0" />
+          <Clock size={16} strokeWidth={1.5} className="shrink-0" />
           <span>
             {time} · {formatDuration(totalDuration)}
           </span>
@@ -129,7 +129,7 @@ export function CheckoutClient({ date, time, user }: Props) {
       {/* User info */}
       <div className="bg-white rounded-2xl border border-[#E0C5AC] p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <User size={16} className="text-[#8B6B5A]" />
+          <User size={16} strokeWidth={1.5} className="text-[#8B6B5A]" />
           <h2 className="text-sm font-semibold text-[#5F4B3C]">Seus dados</h2>
         </div>
         <div className="flex flex-col gap-1 text-sm text-[#8B6B5A]">

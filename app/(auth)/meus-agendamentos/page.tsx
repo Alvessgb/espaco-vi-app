@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppointmentCard } from "@/components/ds/appointment-card";
 import type { AppointmentStatus } from "@/components/ds/status-badge";
 import type { AppointmentStatus as PrismaAppointmentStatus } from "@prisma/client";
+import { BottomNav } from "@/components/ds/bottom-nav";
 
 export default async function MeusAgendamentosPage({
   searchParams,
@@ -40,7 +41,8 @@ export default async function MeusAgendamentosPage({
   });
 
   return (
-    <main className="min-h-screen bg-[#F5EBE0]">
+    <>
+    <main className="min-h-screen bg-[#F5EBE0] pb-20">
       <div className="max-w-lg mx-auto px-4 py-6">
         <h1 className="text-xl font-semibold text-[#3D2B1F] mb-5 font-poppins">
           Meus agendamentos
@@ -116,5 +118,7 @@ export default async function MeusAgendamentosPage({
         )}
       </div>
     </main>
+    <BottomNav />
+    </>
   );
 }

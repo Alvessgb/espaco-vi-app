@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 
 export const BUSINESS_HOURS = { start: 9, end: 19 }; // hours (local time)
 export const MIN_GAP_MINUTES = 15;
-export const MIN_ADVANCE_HOURS = 24;
+export const MIN_ADVANCE_HOURS = 2;
 
 export function calcularDuracaoTotal(
   procedures: { durationMinutes: number }[]

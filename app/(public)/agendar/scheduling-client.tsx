@@ -161,6 +161,7 @@ export function SchedulingClient() {
               const date = new Date(viewYear, viewMonth, day);
               const isPast = date < todayStart;
               const isSunday = date.getDay() === 0;
+              const isMonday = date.getDay() === 1;
               const isSelected =
                 selectedDate?.getDate() === day &&
                 selectedDate?.getMonth() === viewMonth &&
@@ -169,7 +170,7 @@ export function SchedulingClient() {
                 date.getDate() === today.getDate() &&
                 date.getMonth() === today.getMonth() &&
                 date.getFullYear() === today.getFullYear();
-              const disabled = isPast || isSunday;
+              const disabled = isPast || isSunday || isMonday;
 
               return (
                 <button
