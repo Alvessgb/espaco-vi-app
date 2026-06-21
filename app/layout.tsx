@@ -3,6 +3,10 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "sonner";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { ConfigProvider } from "antd";
+import { espacoViTheme } from "@/lib/antd-theme";
+import ptBR from "antd/locale/pt_BR";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -24,19 +28,23 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${poppins.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        <QueryProvider>
-          {children}
-          <Toaster
-            toastOptions={{
-              style: {
-                fontFamily: "var(--font-poppins)",
-                background: "#FFFFFF",
-                color: "#5F4B3C",
-                border: "1px solid #E0C5AC",
-              },
-            }}
-          />
-        </QueryProvider>
+        <AntdRegistry>
+          <ConfigProvider theme={espacoViTheme} locale={ptBR}>
+            <QueryProvider>
+              {children}
+              <Toaster
+                toastOptions={{
+                  style: {
+                    fontFamily: "var(--font-poppins)",
+                    background: "#FFFFFF",
+                    color: "#5F4B3C",
+                    border: "1px solid #E0C5AC",
+                  },
+                }}
+              />
+            </QueryProvider>
+          </ConfigProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

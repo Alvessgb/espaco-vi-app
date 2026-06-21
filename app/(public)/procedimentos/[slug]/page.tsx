@@ -1,17 +1,14 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { db } from "@/lib/db";
-import { Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { Clock, ArrowLeft, ShoppingBag, Check } from "lucide-react";
 import { AddToCartButton } from "./add-to-cart-button";
 
 export const dynamic = "force-dynamic";
 
 function formatPrice(cents: number) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(cents / 100);
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
 function formatDuration(minutes: number) {
@@ -27,6 +24,7 @@ interface Props {
 
 export default async function ProcedimentoDetailPage({ params }: Props) {
   const { slug } = await params;
+  if (!db) notFound();
   const procedure = await db.procedure.findUnique({
     where: { slug },
     include: { images: { orderBy: { order: "asc" } }, category: true },
@@ -34,8 +32,8 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
 
   if (!procedure || procedure.status === "REMOVED") notFound();
 
-  const primaryImage =
-    procedure.images.find((i) => i.isPrimary) ?? procedure.images[0];
+  const primaryImage = procedure.images.find((i) => i.isPrimary) ?? procedure.images[0];
+  const imageUrl = primaryImage?.url ?? `https://placehold.co/800x500/E0C5AC/5F4B3C?text=${encodeURIComponent(procedure.name)}`;
 
   const cartItem = {
     id: procedure.id,
@@ -46,99 +44,148 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
     imageUrl: primaryImage?.url,
   };
 
-  const sections = [
-    { label: "Indicado para", content: procedure.indicatedFor },
-    { label: "Resultado esperado", content: procedure.expectedResult },
-    { label: "Cuidados antes", content: procedure.beforeCare },
-    { label: "Cuidados após", content: procedure.afterCare },
-  ].filter((s) => s.content);
+  // Parse benefits from description or indicatedFor
+  const benefits: string[] = [];
+  if (procedure.expectedResult) {
+    benefits.push(...procedure.expectedResult.split("\n").filter(Boolean));
+  }
+
+  const collapseItems = [
+    procedure.beforeCare && { key: "before", label: "Cuidados antes do procedimento", content: procedure.beforeCare },
+    procedure.afterCare && { key: "after", label: "Cuidados após o procedimento", content: procedure.afterCare },
+  ].filter(Boolean) as { key: string; label: string; content: string }[];
 
   return (
-    <main className="min-h-screen bg-[#F5EBE0]">
-      {/* Back */}
-      <div className="max-w-lg mx-auto px-4 pt-4">
+    <main className="min-h-screen bg-[#F5EBE0] pb-24">
+      {/* Hero Image */}
+      <div className="relative w-full" style={{ height: "40vh", minHeight: 240 }}>
+        <Image
+          src={imageUrl}
+          alt={procedure.name}
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+          unoptimized={imageUrl.includes("placehold.co")}
+        />
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+        {/* Back button */}
         <Link
           href="/procedimentos"
-          className="inline-flex items-center gap-1 text-sm text-[#8B6B5A] hover:text-[#5F4B3C] transition-colors"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-[#3D2B1F] shadow-sm"
         >
-          <ArrowLeft size={14} />
-          Voltar
+          <ArrowLeft size={18} />
         </Link>
+
+        {/* Cart button */}
+        <Link
+          href="/carrinho"
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-[#3D2B1F] shadow-sm"
+        >
+          <ShoppingBag size={18} />
+        </Link>
+
+        {/* Badge bottom-left */}
+        {procedure.badge && (
+          <span className="absolute bottom-16 left-4 bg-[#E0C5AC] text-[#5F4B3C] text-xs font-medium px-3 py-1 rounded-full">
+            {procedure.badge}
+          </span>
+        )}
+
+        {/* Procedure name */}
+        <div className="absolute bottom-4 left-4 right-4">
+          <h1 className="text-white text-2xl font-bold leading-tight drop-shadow-sm">
+            {procedure.name}
+          </h1>
+        </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-5">
-        {/* Image */}
-        <div className="relative h-60 rounded-2xl overflow-hidden bg-[#EDD9C5]">
-          {primaryImage ? (
-            <Image
-              src={primaryImage.url}
-              alt={procedure.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 512px) 100vw, 512px"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#E0C5AC]">
-              <svg
-                width="56"
-                height="56"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="m21 15-5-5L5 21" />
-              </svg>
-            </div>
-          )}
-        </div>
-
-        {/* Header */}
-        <div className="bg-white rounded-2xl border border-[#E0C5AC] p-5 flex flex-col gap-3 shadow-sm">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs text-[#8B6B5A]">{procedure.category.name}</p>
-              <h1 className="text-xl font-semibold text-[#3D2B1F]">
-                {procedure.name}
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-[#5F4B3C]">
+      {/* Content card overlapping image */}
+      <div className="bg-[#F5EBE0] rounded-t-3xl -mt-4 relative z-10">
+        <div className="max-w-lg mx-auto px-4 pt-5 flex flex-col gap-5">
+          {/* Price + Duration + Stars row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="bg-[#E0C5AC] text-[#5F4B3C] font-bold px-4 py-1.5 rounded-full text-sm">
               {formatPrice(procedure.priceInCents)}
             </span>
-            <span className="inline-flex items-center gap-1 text-sm text-[#8B6B5A]">
-              <Clock size={14} />
+            <span className="border border-[#E0C5AC] text-[#5F4B3C] px-3 py-1.5 rounded-full text-xs flex items-center gap-1">
+              <Clock size={12} />
               {formatDuration(procedure.durationMinutes)}
             </span>
           </div>
 
-          {procedure.description && (
-            <p className="text-sm text-[#5F4B3C] leading-relaxed">
-              {procedure.description}
-            </p>
+          {/* About section */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <h2 className="font-bold text-[#3D2B1F] mb-2">Sobre o procedimento</h2>
+            {procedure.description ? (
+              <p className="text-sm text-[#5F4B3C] leading-relaxed">{procedure.description}</p>
+            ) : (
+              <p className="text-sm text-[#8B6B5A]">Informações em breve.</p>
+            )}
+          </div>
+
+          {/* Indicado para */}
+          {procedure.indicatedFor && (
+            <div className="bg-[#F5EBE0] border border-[#E0C5AC] rounded-xl p-4">
+              <p className="font-bold text-[#3D2B1F] text-sm mb-1">Para quem é indicado</p>
+              <p className="text-sm text-[#5F4B3C] leading-relaxed">{procedure.indicatedFor}</p>
+            </div>
           )}
 
-          <AddToCartButton item={cartItem} />
-        </div>
+          {/* Benefits */}
+          {benefits.length > 0 && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <h2 className="font-bold text-[#3D2B1F] mb-3">Benefícios</h2>
+              <ul className="flex flex-col gap-2">
+                {benefits.map((benefit, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#F5EBE0] flex items-center justify-center shrink-0 mt-0.5">
+                      <Check size={11} className="text-[#5F4B3C]" />
+                    </span>
+                    <span className="text-sm text-[#5F4B3C]">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-        {/* Sections */}
-        {sections.map((s) => (
-          <div
-            key={s.label}
-            className="bg-white rounded-2xl border border-[#E0C5AC] p-5 shadow-sm"
+          {/* Collapsible care sections */}
+          {collapseItems.length > 0 && (
+            <div className="flex flex-col gap-3">
+              {collapseItems.map((item) => (
+                <details key={item.key} className="bg-white rounded-2xl shadow-sm group">
+                  <summary className="flex items-center justify-between p-5 cursor-pointer list-none">
+                    <span className="font-bold text-[#3D2B1F] text-sm">{item.label}</span>
+                    <svg
+                      className="w-4 h-4 text-[#8B6B5A] transition-transform group-open:rotate-180"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                    >
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </summary>
+                  <div className="px-5 pb-5 text-sm text-[#5F4B3C] leading-relaxed whitespace-pre-line">
+                    {item.content}
+                  </div>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E0C5AC] px-4 py-3 shadow-lg">
+        <div className="max-w-lg mx-auto flex gap-3">
+          <AddToCartButton item={cartItem} variant="outline" />
+          <Link
+            href="/carrinho"
+            className="flex-1 bg-[#5F4B3C] text-white rounded-full py-3 text-sm font-medium flex items-center justify-center hover:bg-[#4a3a2d] transition-colors"
           >
-            <h2 className="text-sm font-semibold text-[#5F4B3C] mb-2">
-              {s.label}
-            </h2>
-            <p className="text-sm text-[#8B6B5A] leading-relaxed whitespace-pre-line">
-              {s.content}
-            </p>
-          </div>
-        ))}
+            Agendar agora
+          </Link>
+        </div>
       </div>
     </main>
   );

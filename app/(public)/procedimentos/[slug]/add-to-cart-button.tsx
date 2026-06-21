@@ -1,14 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { addToCart, removeFromCart, getCart, type CartItem } from "@/lib/cart";
+import { useState, useEffect } from "react";
+import { addToCart, removeFromCart, getCart } from "@/lib/cart";
+import { Check } from "lucide-react";
 
-interface Props {
-  item: CartItem;
+interface CartItemInput {
+  id: string;
+  slug: string;
+  name: string;
+  priceInCents: number;
+  durationMinutes: number;
+  imageUrl?: string;
 }
 
-export function AddToCartButton({ item }: Props) {
+interface Props {
+  item: CartItemInput;
+  variant?: "outline" | "solid";
+}
+
+export function AddToCartButton({ item, variant = "solid" }: Props) {
   const [inCart, setInCart] = useState(false);
 
   useEffect(() => {
@@ -24,7 +34,7 @@ export function AddToCartButton({ item }: Props) {
     };
   }, [item.id]);
 
-  function toggle() {
+  function handleToggle() {
     if (inCart) {
       removeFromCart(item.id);
       setInCart(false);
@@ -35,26 +45,31 @@ export function AddToCartButton({ item }: Props) {
     window.dispatchEvent(new Event("vi:cart-updated"));
   }
 
-  return (
-    <div className="flex flex-col gap-2 mt-1">
+  if (variant === "outline") {
+    return (
       <button
-        onClick={toggle}
-        className={`w-full rounded-full py-3 text-sm font-medium transition-colors ${
+        onClick={handleToggle}
+        className={`flex-1 rounded-full py-3 text-sm font-medium border transition-colors flex items-center justify-center gap-1.5 ${
           inCart
-            ? "bg-[#E0C5AC] text-[#5F4B3C] hover:bg-[#d4b49a]"
-            : "bg-[#5F4B3C] text-white hover:bg-[#4a3a2d]"
+            ? "border-[#5F4B3C] bg-[#5F4B3C] text-white"
+            : "border-[#5F4B3C] text-[#5F4B3C] hover:bg-[#F5EBE0]"
         }`}
       >
-        {inCart ? "Adicionado ✓" : "Adicionar ao carrinho"}
+        {inCart ? <><Check size={14} /> Adicionado</> : "+ Adicionar"}
       </button>
-      {inCart && (
-        <Link
-          href="/carrinho"
-          className="w-full text-center rounded-full py-2.5 text-sm font-medium bg-white border border-[#E0C5AC] text-[#5F4B3C] hover:bg-[#F5EBE0] transition-colors"
-        >
-          Ver carrinho
-        </Link>
-      )}
-    </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleToggle}
+      className={`w-full rounded-full py-3 text-sm font-semibold transition-colors ${
+        inCart
+          ? "bg-[#E0C5AC] text-[#5F4B3C]"
+          : "bg-[#5F4B3C] text-white hover:bg-[#4a3a2d]"
+      }`}
+    >
+      {inCart ? "✓ Adicionado ao carrinho" : "+ Adicionar ao carrinho"}
+    </button>
   );
 }
