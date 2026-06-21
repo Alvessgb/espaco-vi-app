@@ -2,8 +2,8 @@ export interface CartItem {
   id: string;
   slug: string;
   name: string;
-  priceInCents: number;
-  durationMinutes: number;
+  priceInCents: number | null;
+  durationMinutes: number | null;
   imageUrl?: string;
 }
 
@@ -38,9 +38,9 @@ export function clearCart(): void {
 }
 
 export function getCartTotal(): number {
-  return getCart().reduce((sum, i) => sum + i.priceInCents, 0);
+  return getCart().reduce((sum, i) => sum + (i.priceInCents ?? 0), 0);
 }
 
 export function getCartDuration(): number {
-  return getCart().reduce((sum, i) => sum + i.durationMinutes, 0);
+  return getCart().reduce((sum, i) => sum + (i.durationMinutes ?? 0), 0);
 }

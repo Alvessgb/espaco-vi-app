@@ -7,11 +7,13 @@ import { AddToCartButton } from "./add-to-cart-button";
 
 export const dynamic = "force-dynamic";
 
-function formatPrice(cents: number) {
+function formatPrice(cents: number | null) {
+  if (cents === null) return "A confirmar";
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
-function formatDuration(minutes: number) {
+function formatDuration(minutes: number | null) {
+  if (minutes === null) return "A confirmar";
   if (minutes < 60) return `${minutes}min`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

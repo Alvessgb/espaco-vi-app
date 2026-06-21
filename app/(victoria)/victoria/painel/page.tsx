@@ -45,7 +45,7 @@ export default async function PainelPage() {
         orderBy: { _count: { id: "desc" } },
         take: 5,
       }),
-      db.review.findMany({
+      db.appointmentReview.findMany({
         take: 5,
         orderBy: { createdAt: "desc" },
         include: { user: { select: { name: true } } },

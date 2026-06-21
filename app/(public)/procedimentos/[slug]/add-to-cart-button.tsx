@@ -8,8 +8,8 @@ interface CartItemInput {
   id: string;
   slug: string;
   name: string;
-  priceInCents: number;
-  durationMinutes: number;
+  priceInCents: number | null;
+  durationMinutes: number | null;
   imageUrl?: string;
 }
 

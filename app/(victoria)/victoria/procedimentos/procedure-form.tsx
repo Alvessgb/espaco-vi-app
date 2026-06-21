@@ -17,8 +17,8 @@ interface ProcedureData {
   slug: string;
   shortDescription?: string;
   description?: string;
-  priceInCents: number;
-  durationMinutes: number;
+  priceInCents: number | null;
+  durationMinutes: number | null;
   badge?: string;
   indicatedFor?: string;
   expectedResult?: string;
@@ -48,8 +48,8 @@ export function ProcedureForm({ categories, initialData }: Props) {
   const [slug, setSlug] = useState(initialData?.slug ?? "");
   const [shortDescription, setShortDescription] = useState(initialData?.shortDescription ?? "");
   const [description, setDescription] = useState(initialData?.description ?? "");
-  const [price, setPrice] = useState(initialData ? String(initialData.priceInCents / 100) : "");
-  const [duration, setDuration] = useState(initialData ? String(initialData.durationMinutes) : "");
+  const [price, setPrice] = useState(initialData?.priceInCents != null ? String(initialData.priceInCents / 100) : "");
+  const [duration, setDuration] = useState(initialData?.durationMinutes != null ? String(initialData.durationMinutes) : "");
   const [badge, setBadge] = useState(initialData?.badge ?? "");
   const [indicatedFor, setIndicatedFor] = useState(initialData?.indicatedFor ?? "");
   const [expectedResult, setExpectedResult] = useState(initialData?.expectedResult ?? "");

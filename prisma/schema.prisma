@@ -24,7 +24,7 @@ model User {
   accounts     Account[]
   sessions     Session[]
   appointments Appointment[]
-  reviews      Review[]
+  reviews      AppointmentReview[]
 }
 
 enum UserRole {
@@ -79,24 +79,30 @@ model ProcedureCategory {
 }
 
 model Procedure {
-  id               String          @id @default(cuid())
-  categoryId       String
-  name             String
-  slug             String          @unique
-  shortDescription String?
-  description      String?         @db.Text
-  priceInCents     Int
-  durationMinutes  Int
-  badge            String?
-  indicatedFor     String?         @db.Text
-  expectedResult   String?         @db.Text
-  beforeCare       String?         @db.Text
-  afterCare        String?         @db.Text
-  internalNotes    String?         @db.Text
-  status           ProcedureStatus @default(ACTIVE)
-  order            Int             @default(0)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id                         String          @id @default(cuid())
+  categoryId                 String
+  name                       String
+  slug                       String          @unique
+  shortDescription           String?
+  description                String?         @db.Text
+  priceInCents               Int?
+  durationMinutes            Int?
+  badge                      String?
+  indicatedFor               String?         @db.Text
+  expectedResult             String?         @db.Text
+  beforeCare                 String?         @db.Text
+  afterCare                  String?         @db.Text
+  internalNotes              String?         @db.Text
+  status                     ProcedureStatus @default(ACTIVE)
+  order                      Int             @default(0)
+  benefitsJson               String?         @db.Text
+  faqJson                    String?         @db.Text
+  isBookable                 Boolean         @default(true)
+  notBookableMessage         String?
+  maintenanceIncluded        Boolean         @default(false)
+  maintenanceDurationMinutes Int?
+  createdAt                  DateTime        @default(now())
+  updatedAt                  DateTime        @updatedAt
 
   category              ProcedureCategory      @relation(fields: [categoryId], references: [id])
   images                ProcedureImage[]
@@ -138,7 +144,7 @@ model Appointment {
   user       User                   @relation(fields: [userId], references: [id])
   procedures AppointmentProcedure[]
   payment    Payment?
-  review     Review?
+  review     AppointmentReview?
 }
 
 enum AppointmentStatus {
@@ -213,7 +219,7 @@ enum PaymentStatus {
 
 // ==================== REVIEWS ====================
 
-model Review {
+model AppointmentReview {
   id            String   @id @default(cuid())
   userId        String
   appointmentId String   @unique

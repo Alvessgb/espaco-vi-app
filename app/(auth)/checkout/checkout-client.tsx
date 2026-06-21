@@ -7,14 +7,16 @@ import { Clock, Calendar, User } from "lucide-react";
 
 const BOOKING_FEE_CENTS = 3000;
 
-function formatPrice(cents: number) {
+function formatPrice(cents: number | null) {
+  if (cents === null) return "A confirmar";
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(cents / 100);
 }
 
-function formatDuration(minutes: number) {
+function formatDuration(minutes: number | null) {
+  if (minutes === null) return "A confirmar";
   if (minutes < 60) return `${minutes}min`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
@@ -48,8 +50,8 @@ export function CheckoutClient({ date, time, user }: Props) {
     setItems(getCart());
   }, []);
 
-  const totalProcedures = items.reduce((s, i) => s + i.priceInCents, 0);
-  const totalDuration = items.reduce((s, i) => s + i.durationMinutes, 0);
+  const totalProcedures = items.reduce((s, i) => s + (i.priceInCents ?? 0), 0);
+  const totalDuration = items.reduce((s, i) => s + (i.durationMinutes ?? 0), 0);
 
   async function handleConfirm() {
     setLoading(true);

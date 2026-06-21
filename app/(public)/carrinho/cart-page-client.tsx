@@ -9,11 +9,13 @@ import Link from "next/link";
 
 const BOOKING_FEE_CENTS = 3000; // R$ 30
 
-function formatPrice(cents: number) {
+function formatPrice(cents: number | null) {
+  if (cents === null) return "A confirmar";
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
-function formatDuration(minutes: number) {
+function formatDuration(minutes: number | null) {
+  if (minutes === null) return "A confirmar";
   if (minutes < 60) return `${minutes}min`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
@@ -38,8 +40,8 @@ export function CartPageClient() {
 
   if (!mounted) return null;
 
-  const totalProcedures = items.reduce((sum, i) => sum + i.priceInCents, 0);
-  const totalDurationMinutes = items.reduce((sum, i) => sum + i.durationMinutes, 0);
+  const totalProcedures = items.reduce((sum, i) => sum + (i.priceInCents ?? 0), 0);
+  const totalDurationMinutes = items.reduce((sum, i) => sum + (i.durationMinutes ?? 0), 0);
   const dueOnDay = totalProcedures - BOOKING_FEE_CENTS;
 
   if (items.length === 0) {

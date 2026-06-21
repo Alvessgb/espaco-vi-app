@@ -5,7 +5,8 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ds/status-badge";
 import type { ProcedureStatus } from "@prisma/client";
 
-function formatPrice(cents: number) {
+function formatPrice(cents: number | null) {
+  if (cents === null) return "A confirmar";
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
