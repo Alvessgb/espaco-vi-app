@@ -82,23 +82,19 @@ export async function updateAppointmentStatus(
 }
 
 export async function createProcedure(data: {
-  categoryId: string;
-  name: string;
-  slug: string;
-  shortDescription?: string;
-  description?: string;
-  priceInCents: number;
-  durationMinutes: number;
-  badge?: string;
-  indicatedFor?: string;
-  expectedResult?: string;
-  beforeCare?: string;
-  afterCare?: string;
-  internalNotes?: string;
+  categoryId: string; name: string; slug: string;
+  shortDescription?: string; description?: string;
+  priceInCents?: number | null; durationMinutes?: number | null;
+  badge?: string; indicatedFor?: string; expectedResult?: string;
+  beforeCare?: string; afterCare?: string; internalNotes?: string;
+  imageUrl?: string;
 }): Promise<void> {
   await requireAdmin();
-
-  await db.procedure.create({ data: { ...data, status: "ACTIVE" } });
+  const { imageUrl, ...procedureData } = data;
+  const procedure = await db.procedure.create({ data: { ...procedureData, status: "ACTIVE" } });
+  if (imageUrl) {
+    await db.procedureImage.create({ data: { procedureId: procedure.id, url: imageUrl, isPrimary: true, order: 0 } });
+  }
   revalidatePath("/victoria/procedimentos");
   revalidatePath("/procedimentos");
 }
@@ -106,24 +102,25 @@ export async function createProcedure(data: {
 export async function updateProcedure(
   id: string,
   data: {
-    categoryId?: string;
-    name?: string;
-    slug?: string;
-    shortDescription?: string;
-    description?: string;
-    priceInCents?: number;
-    durationMinutes?: number;
-    badge?: string;
-    indicatedFor?: string;
-    expectedResult?: string;
-    beforeCare?: string;
-    afterCare?: string;
-    internalNotes?: string;
+    categoryId?: string; name?: string; slug?: string;
+    shortDescription?: string; description?: string;
+    priceInCents?: number | null; durationMinutes?: number | null;
+    badge?: string; indicatedFor?: string; expectedResult?: string;
+    beforeCare?: string; afterCare?: string; internalNotes?: string;
+    imageUrl?: string;
   }
 ): Promise<void> {
   await requireAdmin();
-
-  await db.procedure.update({ where: { id }, data });
+  const { imageUrl, ...procedureData } = data;
+  await db.procedure.update({ where: { id }, data: procedureData });
+  if (imageUrl !== undefined) {
+    const existing = await db.procedureImage.findFirst({ where: { procedureId: id } });
+    if (existing) {
+      await db.procedureImage.update({ where: { id: existing.id }, data: { url: imageUrl } });
+    } else if (imageUrl) {
+      await db.procedureImage.create({ data: { procedureId: id, url: imageUrl, isPrimary: true, order: 0 } });
+    }
+  }
   revalidatePath("/victoria/procedimentos");
   revalidatePath("/procedimentos");
 }

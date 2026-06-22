@@ -16,7 +16,7 @@ export default async function EditarProcedimentoPage({
   const { id } = await params;
 
   const [procedure, categories] = await Promise.all([
-    db.procedure.findUnique({ where: { id } }),
+    db.procedure.findUnique({ where: { id }, include: { images: { orderBy: { order: "asc" } } } }),
     db.procedureCategory.findMany({ orderBy: { order: "asc" } }),
   ]);
 
@@ -57,6 +57,7 @@ export default async function EditarProcedimentoPage({
           beforeCare: procedure.beforeCare ?? undefined,
           afterCare: procedure.afterCare ?? undefined,
           internalNotes: procedure.internalNotes ?? undefined,
+          imageUrl: procedure.images.find(i => i.isPrimary)?.url ?? procedure.images[0]?.url ?? undefined,
         }}
       />
 
