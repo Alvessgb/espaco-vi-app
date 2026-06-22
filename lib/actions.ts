@@ -4,6 +4,26 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import bcrypt from "bcryptjs";
+
+export async function createUserAccount(data: {
+  firstName: string; lastName: string; birthDate: string;
+  phone?: string; email: string; password: string;
+}): Promise<void> {
+  const existing = await db.user.findUnique({ where: { email: data.email } });
+  if (existing) throw new Error("Este e-mail já está cadastrado. Faça login.");
+
+  const hash = await bcrypt.hash(data.password, 10);
+  await db.user.create({
+    data: {
+      name: `${data.firstName} ${data.lastName}`.trim(),
+      email: data.email,
+      password: hash,
+      phone: data.phone || null,
+      birthDate: data.birthDate ? new Date(data.birthDate + "T00:00:00") : null,
+    },
+  });
+}
 
 export async function updateUserProfile(data: {
   name: string;

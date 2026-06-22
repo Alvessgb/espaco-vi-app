@@ -11,12 +11,17 @@ export default async function NovoProcedimentoPage() {
   const categories = await db.procedureCategory.findMany({ orderBy: { order: "asc" } });
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-6">
-      <a href="/victoria/procedimentos" className="text-sm text-[#8B6B5A] font-poppins mb-4 inline-block hover:text-[#5F4B3C]">
-        ← Procedimentos
-      </a>
-      <h1 className="font-poppins font-semibold text-[#3D2B1F] text-xl mb-5">Novo procedimento</h1>
-      <ProcedureForm categories={categories} />
+    <main className="min-h-screen bg-[#F5EBE0]">
+      <div className="bg-[#3D2B1F] px-4 pt-5 pb-4 flex items-center gap-3 mb-4">
+        <a href="/victoria/procedimentos" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white text-lg">‹</a>
+        <div>
+          <h1 className="text-white font-bold text-base">Novo procedimento</h1>
+          <p className="text-white/60 text-xs">Área da Victoria · Cadastro</p>
+        </div>
+      </div>
+      <div className="max-w-lg mx-auto px-4">
+        <ProcedureForm categories={categories} />
+      </div>
     </main>
   );
 }
