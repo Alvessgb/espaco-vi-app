@@ -4,11 +4,8 @@ import type { NextRequest } from "next/server";
 const protectedPrefixes = [
   "/agendamentos",
   "/perfil",
-  "/checkout",
   "/victoria",
   "/admin",
-  "/meus-agendamentos",
-  "/agendamento-confirmado",
 ];
 
 const adminPrefixes = ["/victoria", "/admin"];
