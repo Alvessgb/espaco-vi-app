@@ -81,6 +81,24 @@ export async function updateAppointmentStatus(
   revalidatePath("/victoria/agenda/dia");
 }
 
+export async function confirmAppointmentPayment(appointmentId: string): Promise<void> {
+  await requireAdmin();
+
+  await db.$transaction([
+    db.appointment.update({
+      where: { id: appointmentId },
+      data: { status: "CONFIRMED" },
+    }),
+    db.payment.updateMany({
+      where: { appointmentId },
+      data: { status: "PAID", paidAt: new Date() },
+    }),
+  ]);
+
+  revalidatePath("/victoria/pendentes");
+  revalidatePath("/victoria/agenda/dia");
+}
+
 export async function createProcedure(data: {
   categoryId: string; name: string; slug: string;
   shortDescription?: string; description?: string;

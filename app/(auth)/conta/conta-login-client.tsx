@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { createUserAccount } from "@/lib/actions";
 
-export function ContaLoginClient() {
+export function ContaLoginClient({ defaultTab = "login" }: { defaultTab?: "login" | "criar" }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"login" | "criar">("login");
+  const [tab, setTab] = useState<"login" | "criar">(defaultTab);
 
   // Login state
   const [email, setEmail] = useState("");

@@ -90,7 +90,7 @@ export async function createGuestBooking(
       endTime,
       totalPriceInCents,
       durationMinutes: totalDuration,
-      status: "CONFIRMED",
+      status: "PENDING_PAYMENT",
       procedures: {
         create: procedures.map((p) => ({
           procedureId: p.id,
@@ -102,8 +102,7 @@ export async function createGuestBooking(
       payment: {
         create: {
           amountInCents: 3000,
-          status: "PAID",
-          paidAt: new Date(),
+          status: "PENDING",
         },
       },
     },

@@ -1,13 +1,25 @@
 import { auth, signOut } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { redirect } from "next/navigation";
 import { ContaClient } from "./conta-client";
 import { ContaLoginClient } from "./conta-login-client";
 
-export default async function ContaPage() {
+interface Props {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function ContaPage({ searchParams }: Props) {
   const session = await auth();
+  const { tab } = await searchParams;
 
   if (!session?.user?.id) {
-    return <ContaLoginClient />;
+    return <ContaLoginClient defaultTab={tab === "criar" ? "criar" : "login"} />;
+  }
+
+  // Admin → direct to Victoria area
+  // @ts-expect-error role
+  if (session.user?.role === "ADMIN") {
+    redirect("/victoria/agenda/dia");
   }
 
   const user = await db.user.findUnique({
@@ -16,7 +28,7 @@ export default async function ContaPage() {
   });
 
   if (!user) {
-    return <ContaLoginClient />;
+    return <ContaLoginClient defaultTab="login" />;
   }
 
   async function signOutAction() {
