@@ -2,7 +2,8 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { AgendaAppointmentCard, fmtDuration } from "../agenda-card";
+import { fmtDuration } from "@/lib/format";
+import { AgendaAppointmentCard } from "../agenda-card";
 import type { AgendaAppt } from "../agenda-card";
 
 function parseDateParam(d?: string) {
