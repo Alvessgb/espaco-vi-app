@@ -145,7 +145,7 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
 
             <div className="bg-[#F5EBE0] rounded-xl p-4 flex flex-col gap-3">
               <div>
-                <p className="text-xs text-[#8B6B5A] mb-1.5 font-medium uppercase tracking-wide">Chave Pix (e-mail)</p>
+                <p className="text-xs text-[#8B6B5A] mb-1.5 font-medium uppercase tracking-wide">Chave Pix (CNPJ)</p>
                 <PixKeyRow pixKey={PIX_KEY} />
               </div>
               <div className="flex items-center gap-2 text-xs text-[#8B6B5A]">
@@ -210,7 +210,7 @@ function PixKeyRow({ pixKey }: { pixKey: string }) {
     <div className="flex flex-col gap-3">
       <div>
         <p className="font-mono text-base font-bold text-[#3D2B1F] break-all leading-snug">{pixKey}</p>
-        <p className="text-xs text-[#8B6B5A] mt-1">E-mail</p>
+        <p className="text-xs text-[#8B6B5A] mt-1">CNPJ</p>
       </div>
       <CopyButton text={pixKey} />
     </div>
