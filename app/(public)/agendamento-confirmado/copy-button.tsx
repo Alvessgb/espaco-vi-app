@@ -16,10 +16,10 @@ export function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold shrink-0 transition-colors ${copied ? "bg-[#2D6A4F] text-white" : "bg-[#5F4B3C] text-white"}`}
+      className={`w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-colors ${copied ? "bg-[#2D6A4F] text-white" : "bg-[#5F4B3C] text-white"}`}
     >
-      {copied ? <Check size={13} strokeWidth={2} /> : <Copy size={13} strokeWidth={1.5} />}
-      {copied ? "Copiado!" : "Copiar"}
+      {copied ? <Check size={16} strokeWidth={2} /> : <Copy size={16} strokeWidth={1.5} />}
+      {copied ? "Chave copiada!" : "Copiar chave Pix"}
     </button>
   );
 }

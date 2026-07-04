@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, ShoppingBag, Search, Menu, X, ChevronRight, LayoutGrid, User, CalendarDays, Settings } from "lucide-react";
+import {
+  Clock, ShoppingBag, Search, Menu, X, ChevronRight,
+  LayoutGrid, User, CalendarDays, Settings, LayoutList,
+} from "lucide-react";
 import { addToCart, removeFromCart, getCart } from "@/lib/cart";
 import { Drawer } from "antd";
 
@@ -14,7 +17,7 @@ interface Procedure {
   durationMinutes: number | null; badge: string | null;
   categoryId: string; images: { url: string; isPrimary: boolean }[];
 }
-interface Props { procedures: Procedure[]; categories: Category[]; }
+interface Props { procedures: Procedure[]; categories: Category[]; isVictoria?: boolean; }
 
 function formatPrice(cents: number | null) {
   if (cents === null) return "A confirmar";
@@ -28,17 +31,18 @@ function formatDuration(minutes: number | null) {
   return m === 0 ? `${h}h` : `${h}h ${m}min`;
 }
 
-export function CatalogClient({ procedures, categories }: Props) {
+type ViewMode = "grid" | "list";
+
+export function CatalogClient({ procedures, categories, isVictoria = false }: Props) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [cartIds, setCartIds]   = useState<Set<string>>(new Set());
+  const [cartIds, setCartIds]     = useState<Set<string>>(new Set());
   const [cartCount, setCartCount] = useState(0);
-  const [cartTotal, setCartTotal] = useState(0);
   const [menuOpen, setMenuOpen]   = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery]         = useState("");
+  const [query, setQuery]           = useState("");
+  const [viewMode, setViewMode]     = useState<ViewMode>("list");
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Hide "Não realizado" category from chips
   const visibleCategories = categories.filter(c => c.slug !== "nao-realizado");
 
   useEffect(() => {
@@ -46,7 +50,6 @@ export function CatalogClient({ procedures, categories }: Props) {
       const cart = getCart();
       setCartIds(new Set(cart.map(i => i.id)));
       setCartCount(cart.length);
-      setCartTotal(cart.reduce((s, i) => s + (i.priceInCents ?? 0), 0));
     }
     sync();
     window.addEventListener("vi:cart-updated", sync);
@@ -85,7 +88,11 @@ export function CatalogClient({ procedures, categories }: Props) {
     { icon: <LayoutGrid size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Catálogo de serviços", href: "/procedimentos" },
     { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />,       label: "Minha conta",         href: "/conta" },
     { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Meus agendamentos", href: "/meus-agendamentos" },
-    { icon: <Settings size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />,   label: "Área da Victoria",    href: "/victoria" },
+    ...(isVictoria ? [
+      { icon: <Settings size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Painel", href: "/victoria/pendentes" },
+      { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Usuários", href: "/victoria/usuarios" },
+      { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Agendamentos", href: "/victoria/agendamentos" },
+    ] : []),
   ];
 
   return (
@@ -98,6 +105,7 @@ export function CatalogClient({ procedures, categories }: Props) {
             <p className="text-white/60 text-xs leading-tight">por Victoria Aragão</p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Search */}
             <button
               onClick={() => { setSearchOpen(v => !v); setQuery(""); }}
               className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white"
@@ -105,12 +113,27 @@ export function CatalogClient({ procedures, categories }: Props) {
             >
               {searchOpen ? <X size={16} strokeWidth={1.5} /> : <Search size={16} strokeWidth={1.5} />}
             </button>
+
+            {/* View toggle — between search and cart */}
+            <button
+              onClick={() => setViewMode(v => v === "grid" ? "list" : "grid")}
+              className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white transition-colors"
+              aria-label={viewMode === "grid" ? "Visualização em lista" : "Visualização em cards"}
+            >
+              {viewMode === "grid"
+                ? <LayoutList size={16} strokeWidth={1.5} />
+                : <LayoutGrid size={16} strokeWidth={1.5} />}
+            </button>
+
+            {/* Cart */}
             <Link href="/carrinho" className="relative w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white" aria-label="Carrinho">
               <ShoppingBag size={16} strokeWidth={1.5} />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-[#5F4B3C] text-[10px] flex items-center justify-center font-bold">{cartCount}</span>
               )}
             </Link>
+
+            {/* Menu */}
             <button onClick={() => setMenuOpen(true)} className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-white" aria-label="Menu">
               <Menu size={16} strokeWidth={1.5} />
             </button>
@@ -153,24 +176,25 @@ export function CatalogClient({ procedures, categories }: Props) {
         </div>
       </header>
 
-      {/* Cards */}
+      {/* Cards area */}
       <div className="bg-[#F5EBE0] rounded-t-3xl min-h-screen">
-        <div className="flex flex-col gap-4 px-4 pt-5 pb-32">
-          {filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-sm text-[#8B6B5A]">
-                {query ? `Nenhum resultado para "${query}"` : "Nenhum procedimento encontrado."}
-              </p>
-            </div>
-          ) : (
-            filtered.map(p => {
+        {filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-sm text-[#8B6B5A]">
+              {query ? `Nenhum resultado para "${query}"` : "Nenhum procedimento encontrado."}
+            </p>
+          </div>
+        ) : viewMode === "grid" ? (
+          /* ── GRID VIEW: large portrait cards ── */
+          <div className="flex flex-col gap-4 px-4 pt-5 pb-32">
+            {filtered.map(p => {
               const img = p.images.find(i => i.isPrimary) ?? p.images[0];
               const inCart = cartIds.has(p.id);
               const imageUrl = img?.url ?? `https://placehold.co/400x300/E0C5AC/5F4B3C?text=${encodeURIComponent(p.name)}`;
               return (
                 <div key={p.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                  <div className="relative w-full aspect-video">
-                    <Image src={imageUrl} alt={p.name} fill className="object-cover" sizes="(max-width:640px) 100vw, 640px" unoptimized={imageUrl.includes("placehold.co")} />
+                  <div className="relative w-full" style={{ paddingBottom: "133%" }}>
+                    <Image src={imageUrl} alt={p.name} fill className="object-cover object-top" sizes="(max-width:640px) 100vw, 640px" unoptimized={imageUrl.includes("placehold.co")} />
                     {p.badge && <span className="absolute top-3 left-3 bg-[#E0C5AC] text-[#5F4B3C] text-xs font-medium px-3 py-1 rounded-full">{p.badge}</span>}
                     <span className="absolute bottom-3 right-3 bg-white text-[#5F4B3C] text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
                       <Clock size={11} strokeWidth={1.5} />{formatDuration(p.durationMinutes)}
@@ -193,9 +217,83 @@ export function CatalogClient({ procedures, categories }: Props) {
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        ) : (
+          /* ── LIST VIEW: compact horizontal cards ── */
+          <div className="flex flex-col gap-2 px-4 pt-5 pb-32">
+            {filtered.map(p => {
+              const img = p.images.find(i => i.isPrimary) ?? p.images[0];
+              const inCart = cartIds.has(p.id);
+              const imageUrl = img?.url ?? `https://placehold.co/300x400/E0C5AC/5F4B3C?text=${encodeURIComponent(p.name)}`;
+
+              // In list view, only show Combo and Manutenção badges
+              const badgeLower = (p.badge ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+              const showBadge = badgeLower === "combo" || badgeLower === "manutencao";
+
+              return (
+                <Link
+                  key={p.id}
+                  href={`/procedimentos/${p.slug}`}
+                  className="bg-white rounded-2xl shadow-sm overflow-hidden flex min-h-[100px] active:opacity-90 transition-opacity"
+                >
+                  {/* Image — fills full card height via self-stretch (no fixed h) */}
+                  <div className="relative shrink-0 w-[108px] self-stretch">
+                    <Image
+                      src={imageUrl}
+                      alt={p.name}
+                      fill
+                      className="object-cover object-center"
+                      sizes="108px"
+                      unoptimized={imageUrl.includes("placehold.co")}
+                    />
+                    {/* Subtle gradient to anchor badge */}
+                    {showBadge && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    )}
+                    {showBadge && (
+                      <span className="absolute bottom-2 left-2 bg-[#3D2B1F]/80 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full leading-tight backdrop-blur-sm">
+                        {p.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 px-3.5 py-3.5 flex flex-col justify-between gap-2">
+                    {/* Top: name + price */}
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-[#3D2B1F] text-[13px] leading-snug flex-1">{p.name}</h3>
+                        <span className="font-bold text-[#5F4B3C] text-[13px] whitespace-nowrap shrink-0">{formatPrice(p.priceInCents)}</span>
+                      </div>
+                      {p.shortDescription && (
+                        <p className="text-[11px] text-[#8B6B5A] leading-snug line-clamp-2 mt-1">{p.shortDescription}</p>
+                      )}
+                    </div>
+
+                    {/* Bottom: duration + add button */}
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1 text-[#8B6B5A] text-[11px] font-medium">
+                        <Clock size={11} strokeWidth={1.5} />
+                        {formatDuration(p.durationMinutes)}
+                      </span>
+                      <button
+                        onClick={e => { e.preventDefault(); inCart ? handleRemove(p.id) : handleAdd(p); }}
+                        className={`px-4 py-2 rounded-full text-[11px] font-bold transition-colors ${
+                          inCart
+                            ? "bg-[#E0C5AC] text-[#5F4B3C]"
+                            : "bg-[#5F4B3C] text-white active:bg-[#4a3a2d]"
+                        }`}
+                      >
+                        {inCart ? "✓ Adicionado" : "+ Adicionar"}
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Floating cart bar */}

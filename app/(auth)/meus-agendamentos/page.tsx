@@ -6,6 +6,7 @@ import { AppointmentCard } from "@/components/ds/appointment-card";
 import type { AppointmentStatus } from "@/components/ds/status-badge";
 import type { AppointmentStatus as PrismaAppointmentStatus } from "@prisma/client";
 import { BottomNav } from "@/components/ds/bottom-nav";
+import { MarkPaymentButton } from "./mark-payment-button";
 
 export default async function MeusAgendamentosPage({
   searchParams,
@@ -100,18 +101,33 @@ export default async function MeusAgendamentosPage({
                 hour: "2-digit",
                 minute: "2-digit",
               });
+
+              // Derive display status from notes field
+              const effectiveStatus: AppointmentStatus =
+                appt.status === "PENDING_PAYMENT" && appt.notes === "PAYMENT_SENT"
+                  ? "AWAITING_CONFIRMATION"
+                  : (appt.status as AppointmentStatus);
+
+              const awaitingPayment =
+                appt.status === "PENDING_PAYMENT" && appt.notes !== "PAYMENT_SENT";
+
               return (
-                <Link key={appt.id} href={`/meus-agendamentos/${appt.id}`}>
-                  <AppointmentCard
-                    id={appt.id}
-                    date={date}
-                    time={time}
-                    status={appt.status as AppointmentStatus}
-                    services={appt.procedures.map((p) => p.name)}
-                    durationMinutes={appt.durationMinutes}
-                    totalPrice={appt.totalPriceInCents}
-                  />
-                </Link>
+                <div key={appt.id} className="flex flex-col gap-2">
+                  <Link href={`/meus-agendamentos/${appt.id}`}>
+                    <AppointmentCard
+                      id={appt.id}
+                      date={date}
+                      time={time}
+                      status={effectiveStatus}
+                      services={appt.procedures.map((p) => p.name)}
+                      durationMinutes={appt.durationMinutes}
+                      totalPrice={appt.totalPriceInCents}
+                    />
+                  </Link>
+                  {awaitingPayment && (
+                    <MarkPaymentButton appointmentId={appt.id} />
+                  )}
+                </div>
               );
             })}
           </div>

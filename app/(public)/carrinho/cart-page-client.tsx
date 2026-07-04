@@ -3,11 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCart, removeFromCart, clearCart, type CartItem } from "@/lib/cart";
-import { Clock, Trash2, ArrowLeft, Info, ChevronRight } from "lucide-react";
+import { Clock, Trash2, ArrowLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-const BOOKING_FEE_CENTS = 3000; // R$ 30
 
 function formatPrice(cents: number | null) {
   if (cents === null) return "A confirmar";
@@ -42,7 +40,6 @@ export function CartPageClient() {
 
   const totalProcedures = items.reduce((sum, i) => sum + (i.priceInCents ?? 0), 0);
   const totalDurationMinutes = items.reduce((sum, i) => sum + (i.durationMinutes ?? 0), 0);
-  const dueOnDay = totalProcedures - BOOKING_FEE_CENTS;
 
   if (items.length === 0) {
     return (
@@ -145,38 +142,16 @@ export function CartPageClient() {
               <Clock size={13} strokeWidth={1.5} /> {formatDuration(totalDurationMinutes)}
             </span>
           </div>
-          <div className="flex items-center justify-between py-2">
+          <div className="flex items-center justify-between py-2 border-t border-[#F5EBE0]">
             <span className="text-sm text-[#8B6B5A]">Valor dos procedimentos</span>
             <span className="font-bold text-[#3D2B1F]">{formatPrice(totalProcedures)}</span>
           </div>
-          <div className="h-px bg-[#F5EBE0] my-1" />
-          <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-[#8B6B5A]">Taxa de agendamento</span>
-            <span className="font-bold text-[#3D2B1F]">{formatPrice(BOOKING_FEE_CENTS)}</span>
-          </div>
         </div>
 
-        {/* Info banner */}
-        <div className="flex items-start gap-3 bg-white/60 rounded-2xl p-4">
-          <div className="w-7 h-7 rounded-full bg-[#E0C5AC] flex items-center justify-center shrink-0 mt-0.5">
-            <Info size={14} strokeWidth={1.5} className="text-[#5F4B3C]" />
-          </div>
-          <p className="text-xs text-[#5F4B3C] leading-relaxed">
-            A taxa de <strong>R$ 30 confirma seu horário</strong> e será abatida do valor total no dia do atendimento.
-          </p>
-        </div>
-
-        {/* Pricing summary dark card */}
-        <div className="bg-[#5F4B3C] rounded-2xl p-5 flex items-center gap-3">
-          <div className="flex-1">
-            <p className="text-white/70 text-xs">Pagar agora (taxa)</p>
-            <p className="text-white font-bold text-xl">{formatPrice(BOOKING_FEE_CENTS)}</p>
-          </div>
-          <div className="w-px bg-white/20 h-10" />
-          <div className="flex-1 text-right">
-            <p className="text-white/70 text-xs">No dia do atendimento</p>
-            <p className="text-white font-bold text-xl">{formatPrice(Math.max(0, dueOnDay))}</p>
-          </div>
+        {/* Total dark card */}
+        <div className="bg-[#3D2B1F] rounded-2xl p-5 flex items-center justify-between">
+          <p className="text-white/70 text-sm">Valor total</p>
+          <p className="text-white font-bold text-2xl">{formatPrice(totalProcedures)}</p>
         </div>
       </div>
 

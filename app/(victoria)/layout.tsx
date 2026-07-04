@@ -18,7 +18,7 @@ export default async function VictoriaLayout({ children }: { children: React.Rea
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg>
           </Link>
           <div>
-            <p className="text-white font-bold text-base leading-tight">Área da Victoria</p>
+            <p className="text-white font-bold text-base leading-tight">Painel</p>
             <p className="text-white/60 text-xs">Espaço Vi · Painel administrativo</p>
           </div>
         </div>
@@ -26,11 +26,11 @@ export default async function VictoriaLayout({ children }: { children: React.Rea
         {/* Tab pills */}
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
           {[
+            { href: "/victoria/pendentes",     label: "Pendentes", badge: pendingCount },
             { href: "/victoria/agenda/dia",    label: "Dia" },
             { href: "/victoria/agenda/semana", label: "Semana" },
             { href: "/victoria/agenda/mes",    label: "Mês" },
             { href: "/victoria/painel",        label: "Painel" },
-            { href: "/victoria/pendentes",     label: "Pendentes", badge: pendingCount },
           ].map(tab => (
             <Link
               key={tab.href}

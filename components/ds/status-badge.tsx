@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 export type AppointmentStatus =
   | "PENDING_PAYMENT"
+  | "AWAITING_CONFIRMATION"
   | "CONFIRMED"
   | "COMPLETED"
   | "CANCELLED"
@@ -14,8 +15,12 @@ const statusConfig: Record<
   { label: string; className: string }
 > = {
   PENDING_PAYMENT: {
-    label: "Aguardando pagamento",
+    label: "Aguardando taxinha",
     className: "bg-[#F9A825]/20 text-[#E65100]",
+  },
+  AWAITING_CONFIRMATION: {
+    label: "Aguardando confirmação",
+    className: "bg-blue-50 text-blue-700",
   },
   CONFIRMED: {
     label: "Confirmado",

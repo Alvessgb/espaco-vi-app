@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DAYS_FULL = ["Domingo","Segunda-Feira","Terça-Feira","Quarta-Feira","Quinta-Feira","Sexta-Feira","Sábado"];
 
-const PIX_KEY = "vitoria@empresa.com";
+const PIX_KEY = "aragaovictoria05@icloud.com";
+const PIX_NAME = "Victoria Aragão Soares — PicPay";
 const TAXA_CENTS = 3000;
-// Atualize com o número real da Victoria (somente dígitos + DDI)
-const VICTORIA_WHATSAPP = "5511999999999";
+const VICTORIA_WHATSAPP = "5585992446390";
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -143,10 +143,19 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
               <p className="text-xs text-[#8B6B5A] mt-1">Será abatido do valor total no dia do atendimento</p>
             </div>
 
-            <div className="bg-[#F5EBE0] rounded-xl p-4">
-              <p className="text-xs text-[#8B6B5A] mb-1.5 font-medium">Chave Pix</p>
-              <PixKeyRow pixKey={PIX_KEY} />
+            <div className="bg-[#F5EBE0] rounded-xl p-4 flex flex-col gap-3">
+              <div>
+                <p className="text-xs text-[#8B6B5A] mb-1.5 font-medium uppercase tracking-wide">Chave Pix (e-mail)</p>
+                <PixKeyRow pixKey={PIX_KEY} />
+              </div>
+              <div className="flex items-center gap-2 text-xs text-[#8B6B5A]">
+                <span className="font-medium text-[#5F4B3C]">Nome:</span> {PIX_NAME}
+              </div>
             </div>
+
+            <p className="text-xs text-center text-[#8B6B5A] leading-relaxed">
+              Após o pagamento, envie o comprovante para confirmarmos seu agendamento ✨
+            </p>
 
             <div className="flex flex-col gap-2 text-sm text-[#5F4B3C]">
               <div className="flex items-start gap-2">
@@ -198,10 +207,10 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
 
 function PixKeyRow({ pixKey }: { pixKey: string }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col gap-3">
       <div>
-        <p className="font-mono text-sm font-bold text-[#3D2B1F]">{pixKey}</p>
-        <p className="text-xs text-[#8B6B5A]">E-mail</p>
+        <p className="font-mono text-base font-bold text-[#3D2B1F] break-all leading-snug">{pixKey}</p>
+        <p className="text-xs text-[#8B6B5A] mt-1">E-mail</p>
       </div>
       <CopyButton text={pixKey} />
     </div>

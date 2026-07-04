@@ -153,3 +153,118 @@ export async function setProcedureStatus(
   revalidatePath("/victoria/procedimentos");
   revalidatePath("/procedimentos");
 }
+
+// ── GESTÃO DE USUÁRIOS ──────────────────────────────────────────────────────
+
+export async function updateUser(
+  userId: string,
+  data: { name?: string; email?: string; phone?: string; birthDate?: string }
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.email !== undefined && { email: data.email }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+        ...(data.birthDate !== undefined && {
+          birthDate: data.birthDate ? new Date(data.birthDate) : null,
+        }),
+      },
+    });
+    revalidatePath("/victoria/usuarios");
+    return {};
+  } catch {
+    return { error: "Erro ao atualizar usuário." };
+  }
+}
+
+export async function resetUserPassword(
+  userId: string,
+  newPassword: string
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  if (newPassword.length < 6) return { error: "Senha deve ter pelo menos 6 caracteres." };
+  const bcrypt = await import("bcryptjs");
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await db.user.update({ where: { id: userId }, data: { password: hashed } });
+  revalidatePath("/victoria/usuarios");
+  return {};
+}
+
+export async function deleteUser(userId: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    // Cancel all appointments first
+    await db.appointment.updateMany({
+      where: { userId, status: { in: ["PENDING_PAYMENT", "CONFIRMED"] } },
+      data: { status: "CANCELLED" },
+    });
+    await db.user.delete({ where: { id: userId } });
+    revalidatePath("/victoria/usuarios");
+    return {};
+  } catch {
+    return { error: "Erro ao apagar usuário." };
+  }
+}
+
+export async function updateAppointmentStatusAdmin(
+  appointmentId: string,
+  status: AppointmentStatus
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    await db.appointment.update({ where: { id: appointmentId }, data: { status } });
+    revalidatePath("/victoria/agendamentos");
+    revalidatePath("/victoria/pendentes");
+    return {};
+  } catch {
+    return { error: "Erro ao atualizar agendamento." };
+  }
+}
+
+export async function deleteAppointment(appointmentId: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    // Delete dependent records that don't have onDelete: Cascade
+    await db.payment.deleteMany({ where: { appointmentId } });
+    await db.appointmentReview.deleteMany({ where: { appointmentId } });
+    await db.appointment.delete({ where: { id: appointmentId } });
+    revalidatePath("/victoria/agendamentos");
+    revalidatePath("/victoria/pendentes");
+    revalidatePath("/victoria/agenda/dia");
+    return {};
+  } catch (e) {
+    console.error("deleteAppointment error:", e);
+    return { error: "Erro ao apagar agendamento." };
+  }
+}
+
+export async function rescheduleAppointment(
+  appointmentId: string,
+  newStartTimeISO: string,
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    const appt = await db.appointment.findUnique({ where: { id: appointmentId } });
+    if (!appt) return { error: "Agendamento não encontrado." };
+
+    const newStartTime = new Date(newStartTimeISO);
+    const newEndTime = new Date(newStartTime.getTime() + appt.durationMinutes * 60 * 1000);
+
+    await db.appointment.update({
+      where: { id: appointmentId },
+      data: { startTime: newStartTime, endTime: newEndTime, status: "RESCHEDULED" },
+    });
+
+    revalidatePath("/victoria/agendamentos");
+    revalidatePath("/victoria/agenda/dia");
+    revalidatePath("/victoria/agenda/semana");
+    revalidatePath("/victoria/pendentes");
+    return {};
+  } catch (e) {
+    console.error("rescheduleAppointment error:", e);
+    return { error: "Erro ao reagendar." };
+  }
+}

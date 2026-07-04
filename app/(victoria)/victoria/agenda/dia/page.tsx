@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { AgendaAppointmentCard, fmtDuration } from "../agenda-card";
 
 function parseDateParam(d?: string) {
   if (d) { const p = new Date(d + "T00:00:00"); if (!isNaN(p.getTime())) return p; }
@@ -9,10 +10,6 @@ function parseDateParam(d?: string) {
 }
 function fmtDate(d: Date) { return d.toISOString().split("T")[0]; }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
-function fmtDuration(min: number) {
-  const h = Math.floor(min / 60), m = min % 60;
-  return m === 0 ? `${h}h` : `${h}h${m}min`;
-}
 
 const STATUS_LABEL: Record<string, string> = {
   CONFIRMED: "Confirmado", PENDING_PAYMENT: "Pendente",
@@ -26,40 +23,34 @@ const STATUS_COLOR: Record<string, string> = {
   NO_SHOW: "bg-gray-100 text-gray-600",
 };
 
-// Generate time blocks for the business day
-function generateTimeBlocks(start: number, end: number, appointments: { startTime: Date; endTime: Date; durationMinutes: number; user: { name: string | null }; procedures: { name: string }[]; payment: { status: string } | null; status: string }[]) {
-  const blocks: { time: string; minutes: number; appt: typeof appointments[0] | null }[] = [];
-  let cursor = start * 60; // minutes from midnight
-  const endMin = end * 60;
+type Appt = {
+  id: string; status: string; durationMinutes: number; totalPriceInCents: number;
+  startTime: Date; endTime: Date;
+  user: { name: string | null };
+  procedures: { name: string }[];
+  payment: { status: string } | null;
+};
 
+function generateTimeBlocks(start: number, end: number, appointments: Appt[]) {
+  const blocks: { time: string; minutes: number; appt: Appt | null }[] = [];
+  let cursor = start * 60;
+  const endMin = end * 60;
   const sorted = [...appointments].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   while (cursor < endMin) {
     const h = Math.floor(cursor / 60);
     const m = cursor % 60;
     const slotStart = h * 60 + m;
-
-    const appt = sorted.find(a => {
-      const aStart = a.startTime.getHours() * 60 + a.startTime.getMinutes();
-      return aStart === slotStart;
-    });
+    const appt = sorted.find(a => a.startTime.getHours() * 60 + a.startTime.getMinutes() === slotStart);
 
     if (appt) {
       blocks.push({ time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`, minutes: appt.durationMinutes, appt });
       cursor += appt.durationMinutes;
     } else {
-      // Find next appointment gap
-      const nextAppt = sorted.find(a => {
-        const aStart = a.startTime.getHours() * 60 + a.startTime.getMinutes();
-        return aStart > slotStart;
-      });
-      const gapEnd = nextAppt
-        ? nextAppt.startTime.getHours() * 60 + nextAppt.startTime.getMinutes()
-        : endMin;
+      const nextAppt = sorted.find(a => a.startTime.getHours() * 60 + a.startTime.getMinutes() > slotStart);
+      const gapEnd = nextAppt ? nextAppt.startTime.getHours() * 60 + nextAppt.startTime.getMinutes() : endMin;
       const gapMin = Math.min(gapEnd - slotStart, endMin - slotStart);
-      if (gapMin > 0) {
-        blocks.push({ time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`, minutes: gapMin, appt: null });
-      }
+      if (gapMin > 0) blocks.push({ time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`, minutes: gapMin, appt: null });
       cursor += Math.max(gapMin, 30);
     }
   }
@@ -88,7 +79,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   const taxasHoje = appointments.filter(a => a.payment?.status === "PAID").length * 30;
 
   const displayDate = day.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const blocks = generateTimeBlocks(9, 19, appointments as Parameters<typeof generateTimeBlocks>[2]);
+  const blocks = generateTimeBlocks(9, 18, appointments);
 
   return (
     <main className="px-4 pt-5 pb-10 max-w-lg mx-auto">
@@ -99,7 +90,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
         <StatCard value={`R$${taxasHoje}`} label="Taxas recebidas" icon="↗" />
       </div>
 
-      {/* Next client */}
+      {/* Próxima cliente */}
       {nextAppt && (
         <div className="bg-[#3D2B1F] rounded-2xl p-5 mb-4">
           <p className="text-white/60 text-xs mb-1">Próxima cliente</p>
@@ -107,16 +98,19 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
             <div>
               <p className="text-white font-bold text-lg leading-tight">{nextAppt.user.name}</p>
               <p className="text-white/70 text-sm mt-0.5">{nextAppt.procedures.map(p => p.name).join(" + ")}</p>
+              <span className={`inline-block mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full ${STATUS_COLOR[nextAppt.status] ?? "bg-gray-100 text-gray-600"}`}>
+                {STATUS_LABEL[nextAppt.status] ?? nextAppt.status}
+              </span>
             </div>
             <div className="text-right shrink-0">
               <p className="text-white font-bold text-xl">{nextAppt.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</p>
-              <p className="text-white/60 text-xs">{nextAppt.durationMinutes} min</p>
+              <p className="text-white/60 text-xs mt-0.5">{fmtDuration(nextAppt.durationMinutes)}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Date nav + Bloquear */}
+      {/* Date header + Bloquear */}
       <div className="flex items-center gap-3 mb-4">
         <h2 className="font-bold text-[#3D2B1F] flex-1 capitalize text-sm">{displayDate}</h2>
         <Link href="/victoria/bloqueios/novo" className="flex items-center gap-1.5 bg-[#F5EBE0] border border-[#E0C5AC] rounded-full px-4 py-2 text-xs font-semibold text-[#5F4B3C]">
@@ -137,36 +131,19 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
             <p className="text-[#8B6B5A] text-sm">Nenhum atendimento neste dia.</p>
           </div>
         )}
-        {blocks.map((block, i) => block.appt ? (
-          <div key={i} className="bg-white rounded-2xl border border-[#E0C5AC] p-4 shadow-sm">
-            <div className="flex gap-4">
-              <div className="shrink-0 w-14">
-                <p className="font-bold text-[#3D2B1F] text-sm">{block.time}</p>
-                <p className="text-xs text-[#8B6B5A]">{block.minutes} min</p>
+        {blocks.map((block, i) =>
+          block.appt ? (
+            <AgendaAppointmentCard key={i} time={block.time} appt={block.appt} />
+          ) : (
+            <div key={i} className="border border-dashed border-[#E0C5AC] rounded-2xl p-4 flex gap-3">
+              <div className="shrink-0 w-12">
+                <p className="text-[#C4A080] text-sm font-medium">{block.time}</p>
+                <p className="text-[11px] text-[#C4A080] mt-0.5">{fmtDuration(block.minutes)}</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="font-bold text-[#3D2B1F] text-sm leading-tight">{block.appt.user.name}</p>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${STATUS_COLOR[block.appt.status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {STATUS_LABEL[block.appt.status] ?? block.appt.status}
-                  </span>
-                </div>
-                <p className="text-xs text-[#8B6B5A] mb-2">{block.appt.procedures.map(p => p.name).join(" · ")}</p>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${block.appt.payment?.status === "PAID" ? "bg-[#D8F3DC] text-[#2D6A4F]" : "bg-[#FFF3CD] text-[#856404]"}`}>
-                  {block.appt.payment?.status === "PAID" ? "Taxa paga" : "Taxa pendente"}
-                </span>
-              </div>
+              <p className="text-[#C4A080] text-sm italic self-center">Horário livre</p>
             </div>
-          </div>
-        ) : (
-          <div key={i} className="border border-dashed border-[#E0C5AC] rounded-2xl p-4 flex gap-4">
-            <div className="shrink-0 w-14">
-              <p className="text-[#C4A080] text-sm font-medium">{block.time}</p>
-              <p className="text-xs text-[#C4A080]">{block.minutes} min</p>
-            </div>
-            <p className="text-[#C4A080] text-sm italic self-center">Horário livre</p>
-          </div>
-        ))}
+          )
+        )}
       </div>
     </main>
   );

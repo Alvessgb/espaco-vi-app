@@ -30,6 +30,8 @@ export function Header({
   const [cartCount, setCartCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isAdmin = status === "authenticated" && (session?.user as any)?.role === "ADMIN";
   const isLoggedIn = status === "authenticated";
 
   useEffect(() => {
@@ -42,11 +44,6 @@ export function Header({
       window.removeEventListener("storage", sync);
     };
   }, []);
-
-  const mainNavItems = [
-    { icon: "✦", label: "Catálogo de serviços", href: "/procedimentos" },
-    { icon: "📅", label: "Meus agendamentos",   href: "/meus-agendamentos" },
-  ];
 
   return (
     <>
@@ -129,60 +126,46 @@ export function Header({
 
           <div className="h-px bg-[#E0C5AC] mx-5" />
 
-          {/* Main nav */}
+          {/* Nav */}
           <nav className="flex flex-col mt-2">
-            {mainNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between px-5 py-4 hover:bg-[#EDD9C5] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="text-[#3D2B1F] font-medium text-sm">{item.label}</span>
-                </div>
-                <ChevronRight size={16} className="text-[#8B6B5A]" />
-              </Link>
-            ))}
+            {/* Always visible */}
+            <NavItem icon="✦" label="Catálogo de serviços" href="/procedimentos" onClick={() => setMenuOpen(false)} />
+            <NavItem icon="📅" label="Meus agendamentos"   href="/meus-agendamentos" onClick={() => setMenuOpen(false)} />
 
-            {/* Account section */}
             <div className="h-px bg-[#E0C5AC] mx-5 my-1" />
 
+            {/* Account / auth section */}
             {isLoggedIn ? (
-              <Link
-                href="/conta"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between px-5 py-4 hover:bg-[#EDD9C5] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">👤</span>
-                  <span className="text-[#3D2B1F] font-medium text-sm">Minha conta</span>
-                </div>
-                <ChevronRight size={16} className="text-[#8B6B5A]" />
-              </Link>
+              <>
+                <NavItem icon="👤" label="Minha conta" href="/conta" onClick={() => setMenuOpen(false)} />
+                {isAdmin && (
+                  <NavItem icon="⚙️" label="Área da Victoria" href="/victoria/pendentes" onClick={() => setMenuOpen(false)} />
+                )}
+              </>
             ) : (
               <>
+                {/* Entrar */}
                 <Link
                   href="/conta"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center justify-between px-5 py-4 hover:bg-[#EDD9C5] transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#5F4B3C] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-[#5F4B3C] flex items-center justify-center shrink-0">
                       <LogIn size={15} strokeWidth={1.5} className="text-white" />
                     </div>
                     <span className="text-[#3D2B1F] font-semibold text-sm">Entrar</span>
                   </div>
                   <ChevronRight size={16} className="text-[#8B6B5A]" />
                 </Link>
+                {/* Criar conta */}
                 <Link
                   href="/conta?tab=criar"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center justify-between px-5 py-4 hover:bg-[#EDD9C5] transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#E0C5AC] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-[#E0C5AC] flex items-center justify-center shrink-0">
                       <UserPlus size={15} strokeWidth={1.5} className="text-[#5F4B3C]" />
                     </div>
                     <span className="text-[#3D2B1F] font-medium text-sm">Criar conta</span>
@@ -193,7 +176,6 @@ export function Header({
             )}
           </nav>
 
-          {/* Footer */}
           <div className="mt-auto pb-10 px-5 text-center">
             <p className="text-[#8B6B5A] text-xs">Espaço Vi · Estúdio de Estética</p>
             <p className="text-[#C4A080] text-xs">@espacovi</p>
@@ -201,5 +183,21 @@ export function Header({
         </div>
       </Drawer>
     </>
+  );
+}
+
+function NavItem({ icon, label, href, onClick }: { icon: string; label: string; href: string; onClick: () => void }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center justify-between px-5 py-4 hover:bg-[#EDD9C5] transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-xl">{icon}</span>
+        <span className="text-[#3D2B1F] font-medium text-sm">{label}</span>
+      </div>
+      <ChevronRight size={16} className="text-[#8B6B5A]" />
+    </Link>
   );
 }

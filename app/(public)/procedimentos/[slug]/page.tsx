@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { Clock, ArrowLeft, ShoppingBag, Check } from "lucide-react";
+import { Clock, ArrowLeft, ShoppingBag } from "lucide-react";
 import { AddToCartButton } from "./add-to-cart-button";
 
 export const dynamic = "force-dynamic";
@@ -46,12 +46,6 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
     imageUrl: primaryImage?.url,
   };
 
-  // Parse benefits from description or indicatedFor
-  const benefits: string[] = [];
-  if (procedure.expectedResult) {
-    benefits.push(...procedure.expectedResult.split("\n").filter(Boolean));
-  }
-
   const collapseItems = [
     procedure.beforeCare && { key: "before", label: "Cuidados antes do procedimento", content: procedure.beforeCare },
     procedure.afterCare && { key: "after", label: "Cuidados após o procedimento", content: procedure.afterCare },
@@ -60,7 +54,7 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-[#F5EBE0] pb-24">
       {/* Hero Image */}
-      <div className="relative w-full" style={{ height: "40vh", minHeight: 240 }}>
+      <div className="relative w-full" style={{ height: "55vh", minHeight: 320 }}>
         <Image
           src={imageUrl}
           alt={procedure.name}
@@ -127,31 +121,6 @@ export default async function ProcedimentoDetailPage({ params }: Props) {
               <p className="text-sm text-[#8B6B5A]">Informações em breve.</p>
             )}
           </div>
-
-          {/* Indicado para */}
-          {procedure.indicatedFor && (
-            <div className="bg-[#F5EBE0] border border-[#E0C5AC] rounded-xl p-4">
-              <p className="font-bold text-[#3D2B1F] text-sm mb-1">Para quem é indicado</p>
-              <p className="text-sm text-[#5F4B3C] leading-relaxed">{procedure.indicatedFor}</p>
-            </div>
-          )}
-
-          {/* Benefits */}
-          {benefits.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h2 className="font-bold text-[#3D2B1F] mb-3">Benefícios</h2>
-              <ul className="flex flex-col gap-2">
-                {benefits.map((benefit, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#F5EBE0] flex items-center justify-center shrink-0 mt-0.5">
-                      <Check size={11} strokeWidth={1.5} className="text-[#5F4B3C]" />
-                    </span>
-                    <span className="text-sm text-[#5F4B3C]">{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {/* Collapsible care sections */}
           {collapseItems.length > 0 && (
