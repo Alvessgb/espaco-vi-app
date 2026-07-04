@@ -17,7 +17,7 @@ export default async function ProcedimentosPage() {
     if (db) {
       const [procs, cats] = await Promise.all([
         db.procedure.findMany({
-          where: { status: "ACTIVE" },
+          where: { status: { in: ["ACTIVE", "PRICE_TO_CONFIRM"] } },
           include: {
             images: { orderBy: { order: "asc" } },
             category: true,
