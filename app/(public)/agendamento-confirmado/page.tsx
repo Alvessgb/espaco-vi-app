@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DAYS_FULL = ["Domingo","Segunda-Feira","Terça-Feira","Quarta-Feira","Quinta-Feira","Sexta-Feira","Sábado"];
 
-const PIX_KEY = "aragaovictoria05@icloud.com";
+const PIX_KEY = "65.025.945/0001-03";
 const PIX_NAME = "Victoria Aragão Soares — PicPay";
 const TAXA_CENTS = 3000;
 const VICTORIA_WHATSAPP = "5585992446390";
