@@ -7,15 +7,15 @@ import { updateAppointmentStatusAdmin } from "@/lib/admin-actions";
 const STATUS_LABEL: Record<string, string> = {
   CONFIRMED:       "Confirmado",
   PENDING_PAYMENT: "Pendente",
-  COMPLETED:       "Concluído",
+  COMPLETED:       "Realizado",
   CANCELLED:       "Cancelado",
-  NO_SHOW:         "Não compareceu",
+  NO_SHOW:         "Não realizado",
   RESCHEDULED:     "Reagendado",
 };
 const STATUS_COLOR: Record<string, string> = {
   CONFIRMED:       "bg-[#D8F3DC] text-[#2D6A4F]",
   PENDING_PAYMENT: "bg-[#FFF3CD] text-[#856404]",
-  COMPLETED:       "bg-[#E0C5AC] text-[#5F4B3C]",
+  COMPLETED:       "bg-blue-50 text-blue-700",
   CANCELLED:       "bg-red-100 text-red-700",
   NO_SHOW:         "bg-gray-100 text-gray-600",
   RESCHEDULED:     "bg-blue-50 text-blue-700",

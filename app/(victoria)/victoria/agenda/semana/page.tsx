@@ -58,18 +58,30 @@ export default async function AgendaSemanaPage({
     orderBy: { startTime: "asc" },
   });
 
+  // Serialise: strip Date objects before passing to Client Components
+  const serialised = appointments.map(a => ({
+    id: a.id,
+    status: a.status as string,
+    durationMinutes: a.durationMinutes,
+    totalPriceInCents: a.totalPriceInCents,
+    user: { name: a.user.name },
+    procedures: a.procedures.map(p => ({ name: p.name })),
+    payment: a.payment ? { status: a.payment.status as string } : null,
+    dateKey: fmtParam(a.startTime),
+    timeStr: a.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+  }));
+
   const countByDay: Record<string, number> = {};
-  for (const a of appointments) {
-    const k = fmtParam(a.startTime);
-    countByDay[k] = (countByDay[k] ?? 0) + 1;
+  for (const a of serialised) {
+    countByDay[a.dateKey] = (countByDay[a.dateKey] ?? 0) + 1;
   }
 
   const maxCount = Math.max(1, ...Object.values(countByDay));
 
   const selectedDateStr = day ?? fmtParam(new Date());
-  const dayAppts = appointments
-    .filter(a => fmtParam(a.startTime) === selectedDateStr)
-    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  const dayAppts = serialised
+    .filter(a => a.dateKey === selectedDateStr)
+    .sort((a, b) => a.timeStr.localeCompare(b.timeStr));
   const selectedDate = new Date(selectedDateStr + "T00:00:00");
 
   const prevWeek = fmtParam(addDays(weekStart, -7));
@@ -162,7 +174,7 @@ export default async function AgendaSemanaPage({
             {dayAppts.map(appt => (
               <AgendaAppointmentCard
                 key={appt.id}
-                time={appt.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                time={appt.timeStr}
                 appt={appt}
               />
             ))}

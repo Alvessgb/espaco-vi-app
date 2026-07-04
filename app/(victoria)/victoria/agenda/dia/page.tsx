@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { AgendaAppointmentCard, fmtDuration } from "../agenda-card";
+import type { AgendaAppt } from "../agenda-card";
 
 function parseDateParam(d?: string) {
   if (d) { const p = new Date(d + "T00:00:00"); if (!isNaN(p.getTime())) return p; }
@@ -13,44 +14,50 @@ function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDat
 
 const STATUS_LABEL: Record<string, string> = {
   CONFIRMED: "Confirmado", PENDING_PAYMENT: "Pendente",
-  COMPLETED: "Concluído",  CANCELLED: "Cancelado", NO_SHOW: "Não compareceu",
+  COMPLETED: "Realizado",  CANCELLED: "Cancelado",
+  NO_SHOW: "Não realizado", RESCHEDULED: "Reagendado",
 };
 const STATUS_COLOR: Record<string, string> = {
-  CONFIRMED: "bg-[#D8F3DC] text-[#2D6A4F]",
+  CONFIRMED:       "bg-[#D8F3DC] text-[#2D6A4F]",
   PENDING_PAYMENT: "bg-[#FFF3CD] text-[#856404]",
-  COMPLETED: "bg-[#E0C5AC] text-[#5F4B3C]",
-  CANCELLED: "bg-red-100 text-red-700",
-  NO_SHOW: "bg-gray-100 text-gray-600",
+  COMPLETED:       "bg-blue-50 text-blue-700",
+  CANCELLED:       "bg-red-100 text-red-700",
+  NO_SHOW:         "bg-gray-100 text-gray-600",
+  RESCHEDULED:     "bg-blue-50 text-blue-700",
 };
 
-type Appt = {
-  id: string; status: string; durationMinutes: number; totalPriceInCents: number;
-  startTime: Date; endTime: Date;
-  user: { name: string | null };
-  procedures: { name: string }[];
-  payment: { status: string } | null;
-};
+// Serialised appointment — safe to pass to Client Components (no Date objects)
+interface SerializedAppt extends AgendaAppt {
+  startMinutes: number;
+  timeLabel: string;
+}
 
-function generateTimeBlocks(start: number, end: number, appointments: Appt[]) {
-  const blocks: { time: string; minutes: number; appt: Appt | null }[] = [];
-  let cursor = start * 60;
-  const endMin = end * 60;
-  const sorted = [...appointments].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+type Block =
+  | { kind: "appt"; time: string; appt: AgendaAppt }
+  | { kind: "free"; time: string; minutes: number };
+
+function buildTimeline(startHour: number, endHour: number, appts: SerializedAppt[]): Block[] {
+  const blocks: Block[] = [];
+  let cursor = startHour * 60;
+  const endMin = endHour * 60;
+  const sorted = [...appts].sort((a, b) => a.startMinutes - b.startMinutes);
 
   while (cursor < endMin) {
     const h = Math.floor(cursor / 60);
     const m = cursor % 60;
-    const slotStart = h * 60 + m;
-    const appt = sorted.find(a => a.startTime.getHours() * 60 + a.startTime.getMinutes() === slotStart);
+    const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 
-    if (appt) {
-      blocks.push({ time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`, minutes: appt.durationMinutes, appt });
-      cursor += appt.durationMinutes;
+    const match = sorted.find(a => a.startMinutes === cursor);
+    if (match) {
+      const { startMinutes: _, timeLabel: __, ...clientAppt } = match;
+      void _; void __;
+      blocks.push({ kind: "appt", time: timeStr, appt: clientAppt as AgendaAppt });
+      cursor += match.durationMinutes;
     } else {
-      const nextAppt = sorted.find(a => a.startTime.getHours() * 60 + a.startTime.getMinutes() > slotStart);
-      const gapEnd = nextAppt ? nextAppt.startTime.getHours() * 60 + nextAppt.startTime.getMinutes() : endMin;
-      const gapMin = Math.min(gapEnd - slotStart, endMin - slotStart);
-      if (gapMin > 0) blocks.push({ time: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`, minutes: gapMin, appt: null });
+      const next = sorted.find(a => a.startMinutes > cursor);
+      const gapEnd = next ? next.startMinutes : endMin;
+      const gapMin = Math.min(gapEnd - cursor, endMin - cursor);
+      if (gapMin > 0) blocks.push({ kind: "free", time: timeStr, minutes: gapMin });
       cursor += Math.max(gapMin, 30);
     }
   }
@@ -67,25 +74,42 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
   const dayEnd   = new Date(day); dayEnd.setHours(23, 59, 59, 999);
 
-  const appointments = await db.appointment.findMany({
+  const raw = await db.appointment.findMany({
     where: { startTime: { gte: dayStart, lte: dayEnd }, status: { notIn: ["CANCELLED"] } },
     include: { user: { select: { name: true } }, procedures: true, payment: true },
     orderBy: { startTime: "asc" },
   });
 
+  // Serialise: extract only primitives + plain objects (no Date, no Prisma internals)
+  const appts: SerializedAppt[] = raw.map(a => ({
+    id:               a.id,
+    status:           a.status as string,
+    durationMinutes:  a.durationMinutes,
+    totalPriceInCents: a.totalPriceInCents,
+    user:             { name: a.user.name },
+    procedures:       a.procedures.map(p => ({ name: p.name })),
+    payment:          a.payment ? { status: a.payment.status as string } : null,
+    startMinutes:     a.startTime.getHours() * 60 + a.startTime.getMinutes(),
+    timeLabel:        a.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    // server-only — used below, not passed to any Client Component
+    _startTime:       a.startTime,
+  } as SerializedAppt & { _startTime: Date }));
+
   const now = new Date();
-  const nextAppt = appointments.find(a => a.status === "CONFIRMED" && a.startTime > now);
-  const totalMinutes = appointments.reduce((s, a) => s + a.durationMinutes, 0);
-  const taxasHoje = appointments.filter(a => a.payment?.status === "PAID").length * 30;
+  const nextAppt = (appts as (SerializedAppt & { _startTime?: Date })[]).find(
+    a => a.status === "CONFIRMED" && a._startTime && a._startTime > now
+  );
+  const totalMinutes = appts.reduce((s, a) => s + a.durationMinutes, 0);
+  const taxasHoje = appts.filter(a => a.payment?.status === "PAID").length * 30;
 
   const displayDate = day.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const blocks = generateTimeBlocks(9, 18, appointments);
+  const blocks = buildTimeline(9, 18, appts);
 
   return (
     <main className="px-4 pt-5 pb-10 max-w-lg mx-auto">
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <StatCard value={appointments.length} label="Clientes hoje" icon="👥" />
+        <StatCard value={appts.length} label="Clientes hoje" icon="👥" />
         <StatCard value={fmtDuration(totalMinutes)} label="Horas ocupadas" icon="⏱" />
         <StatCard value={`R$${taxasHoje}`} label="Taxas recebidas" icon="↗" />
       </div>
@@ -103,7 +127,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
               </span>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-white font-bold text-xl">{nextAppt.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</p>
+              <p className="text-white font-bold text-xl">{nextAppt.timeLabel}</p>
               <p className="text-white/60 text-xs mt-0.5">{fmtDuration(nextAppt.durationMinutes)}</p>
             </div>
           </div>
@@ -118,7 +142,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
         </Link>
       </div>
 
-      {/* Prev/Next nav */}
+      {/* Prev/Next */}
       <div className="flex gap-2 mb-4">
         <Link href={`/victoria/agenda/dia?date=${fmtDate(addDays(day, -1))}`} className="flex-1 text-center bg-white border border-[#E0C5AC] rounded-xl py-2 text-sm text-[#8B6B5A] hover:text-[#5F4B3C]">← Anterior</Link>
         <Link href={`/victoria/agenda/dia?date=${fmtDate(addDays(day, 1))}`}  className="flex-1 text-center bg-white border border-[#E0C5AC] rounded-xl py-2 text-sm text-[#8B6B5A] hover:text-[#5F4B3C]">Próximo →</Link>
@@ -132,7 +156,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
           </div>
         )}
         {blocks.map((block, i) =>
-          block.appt ? (
+          block.kind === "appt" ? (
             <AgendaAppointmentCard key={i} time={block.time} appt={block.appt} />
           ) : (
             <div key={i} className="border border-dashed border-[#E0C5AC] rounded-2xl p-4 flex gap-3">

@@ -29,10 +29,10 @@ interface ApptData {
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   PENDING_PAYMENT: { label: "Aguardando taxinha", color: "bg-[#FFF3CD] text-[#856404]" },
   CONFIRMED:       { label: "Confirmado",         color: "bg-green-50 text-green-700" },
-  COMPLETED:       { label: "Concluído",           color: "bg-[#E0C5AC]/40 text-[#5F4B3C]" },
+  COMPLETED:       { label: "Realizado",            color: "bg-blue-50 text-blue-700" },
   CANCELLED:       { label: "Cancelado",           color: "bg-gray-100 text-gray-500" },
   RESCHEDULED:     { label: "Reagendado",          color: "bg-blue-50 text-blue-700" },
-  NO_SHOW:         { label: "Não compareceu",      color: "bg-red-50 text-red-600" },
+  NO_SHOW:         { label: "Não realizado",        color: "bg-red-50 text-red-600" },
 };
 
 const ALL_STATUSES: AppointmentStatus[] = [

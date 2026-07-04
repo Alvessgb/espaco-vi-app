@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Clock, ShoppingBag, Search, Menu, X, ChevronRight,
-  LayoutGrid, User, CalendarDays, Settings, LayoutList,
+  LayoutGrid, User, CalendarDays, LayoutDashboard, LayoutList,
 } from "lucide-react";
 import { addToCart, removeFromCart, getCart } from "@/lib/cart";
 import { Drawer } from "antd";
@@ -89,7 +89,7 @@ export function CatalogClient({ procedures, categories, isVictoria = false }: Pr
     { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />,       label: "Minha conta",         href: "/conta" },
     { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Meus agendamentos", href: "/meus-agendamentos" },
     ...(isVictoria ? [
-      { icon: <Settings size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Painel", href: "/victoria/pendentes" },
+      { icon: <LayoutDashboard size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Painel", href: "/victoria/pendentes" },
       { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Usuários", href: "/victoria/usuarios" },
       { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Agendamentos", href: "/victoria/agendamentos" },
     ] : []),

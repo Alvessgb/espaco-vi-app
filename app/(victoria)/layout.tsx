@@ -38,8 +38,8 @@ export default async function VictoriaLayout({ children }: { children: React.Rea
               className="shrink-0 px-4 py-2 rounded-full text-sm font-medium border border-white/30 text-white hover:bg-white hover:text-[#5F4B3C] transition-colors flex items-center gap-1.5"
             >
               {tab.label}
-              {tab.badge && tab.badge > 0 && (
-                <span className="bg-[#F9A825] text-[#3D2B1F] text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+              {tab.badge !== undefined && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${tab.badge > 0 ? "bg-[#F9A825] text-[#3D2B1F]" : "bg-[#2D6A4F] text-white"}`}>
                   {tab.badge}
                 </span>
               )}
