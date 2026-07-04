@@ -20,31 +20,24 @@ export async function GET(req: NextRequest) {
   }
 
   if (action === "fix-photos") {
-    // Restore correct photos for design, nanoblading, retoque-nanoblading
-    const designSlug = "design-com-coloracao";
-    const nanoSlug = "nanoblading";
-    const retoqueSlug = "retoque-nanoblading";
+    const updates: { slug: string; url: string }[] = [
+      { slug: "design-com-coloracao", url: "/procedures/design-coloracao.jpg" },
+      { slug: "nanoblading",          url: "/procedures/nanoblading.jpg" },
+      { slug: "retoque-nanoblading",  url: "/procedures/retoque-nanoblading.jpg" },
+    ];
 
-    // Delete existing images first, then add correct ones
-    await db.procedureImage.deleteMany({ where: { procedure: { slug: designSlug } } });
-    await db.procedureImage.deleteMany({ where: { procedure: { slug: nanoSlug } } });
-    await db.procedureImage.deleteMany({ where: { procedure: { slug: retoqueSlug } } });
-
-    const design = await db.procedure.findUnique({ where: { slug: designSlug } });
-    const nano = await db.procedure.findUnique({ where: { slug: nanoSlug } });
-    const retoque = await db.procedure.findUnique({ where: { slug: retoqueSlug } });
-
-    if (design) {
-      await db.procedureImage.create({ data: { procedureId: design.id, url: "/procedures/design-coloracao.jpg", order: 0 } });
+    const results: Record<string, boolean> = {};
+    for (const { slug, url } of updates) {
+      const proc = await db.procedure.findUnique({ where: { slug } });
+      if (proc) {
+        await db.procedureImage.deleteMany({ where: { procedureId: proc.id } });
+        await db.procedureImage.create({ data: { procedureId: proc.id, url, order: 0 } });
+        results[slug] = true;
+      } else {
+        results[slug] = false;
+      }
     }
-    if (nano) {
-      await db.procedureImage.create({ data: { procedureId: nano.id, url: "/procedures/nanoblading.jpg", order: 0 } });
-    }
-    if (retoque) {
-      await db.procedureImage.create({ data: { procedureId: retoque.id, url: "/procedures/retoque-nanoblading.jpg", order: 0 } });
-    }
-
-    return NextResponse.json({ ok: true, design: !!design, nano: !!nano, retoque: !!retoque });
+    return NextResponse.json({ ok: true, results });
   }
 
   // Default: status check
