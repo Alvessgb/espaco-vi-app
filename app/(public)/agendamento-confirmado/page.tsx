@@ -3,16 +3,12 @@ import { db } from "@/lib/db";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { redirect } from "next/navigation";
 import { CopyButton } from "./copy-button";
+import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DAYS_FULL = ["Domingo","Segunda-Feira","Terça-Feira","Quarta-Feira","Quinta-Feira","Sexta-Feira","Sábado"];
-
-const PIX_KEY = "65.025.945/0001-03";
-const PIX_NAME = "Victoria Aragão Soares — PicPay";
-const TAXA_CENTS = 3000;
-const VICTORIA_WHATSAPP = "5585992446390";
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -45,12 +41,12 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
   const dayName = DAYS_FULL[d.getDay()];
   const dateStr = `${d.getDate()} de ${MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
   const timeStr = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  const remaining = Math.max(0, appointment.totalPriceInCents - TAXA_CENTS);
+  const remaining = Math.max(0, appointment.totalPriceInCents - config.bookingFeeCents);
 
   const whatsappMsg = encodeURIComponent(
-    `Olá Victoria! Acabei de agendar um procedimento no Espaço Vi e enviei o comprovante do Pix de R$30. Meu agendamento é dia ${d.getDate()} de ${MONTHS[d.getMonth()]} às ${timeStr}. Nome: ${appointment.user?.name ?? firstName}.`
+    `Olá! Acabei de agendar um procedimento no ${config.studioName} e enviei o comprovante do Pix de R$30. Meu agendamento é dia ${d.getDate()} de ${MONTHS[d.getMonth()]} às ${timeStr}. Nome: ${appointment.user?.name ?? firstName}.`
   );
-  const whatsappUrl = `https://wa.me/${VICTORIA_WHATSAPP}?text=${whatsappMsg}`;
+  const whatsappUrl = `https://wa.me/${config.whatsapp}?text=${whatsappMsg}`;
 
   return (
     <main className="min-h-screen bg-[#F5EBE0]">
@@ -103,7 +99,7 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
               <MapPin size={16} strokeWidth={1.5} className="text-[#8B6B5A] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs text-[#8B6B5A] mb-0.5">Local</p>
-                <p className="text-sm font-bold text-[#3D2B1F]">Espaço Vi</p>
+                <p className="text-sm font-bold text-[#3D2B1F]">{config.studioName}</p>
                 <p className="text-xs text-[#8B6B5A]">Endereço confirmado por WhatsApp</p>
               </div>
             </div>
@@ -121,7 +117,7 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
             <div className="px-5 py-4 flex items-center justify-between">
               <div>
                 <p className="text-xs text-[#8B6B5A]">Taxa de agendamento</p>
-                <p className="text-base font-bold text-[#5F4B3C]">{formatPrice(TAXA_CENTS)}</p>
+                <p className="text-base font-bold text-[#5F4B3C]">{formatPrice(config.bookingFeeCents)}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-[#8B6B5A]">Restante no dia</p>
@@ -145,11 +141,11 @@ export default async function AgendamentoConfirmadoPage({ searchParams }: Props)
 
             <div className="bg-[#F5EBE0] rounded-xl p-4 flex flex-col gap-3">
               <div>
-                <p className="text-xs text-[#8B6B5A] mb-1.5 font-medium uppercase tracking-wide">Chave Pix (CNPJ)</p>
-                <PixKeyRow pixKey={PIX_KEY} />
+                <p className="text-xs text-[#8B6B5A] mb-1.5 font-medium uppercase tracking-wide">Chave Pix ({config.pixKeyType})</p>
+                <PixKeyRow pixKey={config.pixKey} />
               </div>
               <div className="flex items-center gap-2 text-xs text-[#8B6B5A]">
-                <span className="font-medium text-[#5F4B3C]">Nome:</span> {PIX_NAME}
+                <span className="font-medium text-[#5F4B3C]">Nome:</span> {config.pixRecipientName}
               </div>
             </div>
 
@@ -210,7 +206,7 @@ function PixKeyRow({ pixKey }: { pixKey: string }) {
     <div className="flex flex-col gap-3">
       <div>
         <p className="font-mono text-base font-bold text-[#3D2B1F] break-all leading-snug">{pixKey}</p>
-        <p className="text-xs text-[#8B6B5A] mt-1">CNPJ</p>
+        <p className="text-xs text-[#8B6B5A] mt-1">{config.pixKeyType}</p>
       </div>
       <CopyButton text={pixKey} />
     </div>

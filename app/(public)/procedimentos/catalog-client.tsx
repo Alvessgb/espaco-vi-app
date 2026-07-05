@@ -17,7 +17,7 @@ interface Procedure {
   durationMinutes: number | null; badge: string | null;
   categoryId: string; images: { url: string; isPrimary: boolean }[];
 }
-interface Props { procedures: Procedure[]; categories: Category[]; isVictoria?: boolean; }
+interface Props { procedures: Procedure[]; categories: Category[]; isAdmin?: boolean; }
 
 function formatPrice(cents: number | null) {
   if (cents === null) return "A confirmar";
@@ -33,7 +33,7 @@ function formatDuration(minutes: number | null) {
 
 type ViewMode = "grid" | "list";
 
-export function CatalogClient({ procedures, categories, isVictoria = false }: Props) {
+export function CatalogClient({ procedures, categories, isAdmin = false }: Props) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [cartIds, setCartIds]     = useState<Set<string>>(new Set());
   const [cartCount, setCartCount] = useState(0);
@@ -88,7 +88,7 @@ export function CatalogClient({ procedures, categories, isVictoria = false }: Pr
     { icon: <LayoutGrid size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Catálogo de serviços", href: "/procedimentos" },
     { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />,       label: "Minha conta",         href: "/conta" },
     { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Meus agendamentos", href: "/meus-agendamentos" },
-    ...(isVictoria ? [
+    ...(isAdmin ? [
       { icon: <LayoutDashboard size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Painel", href: "/victoria/pendentes" },
       { icon: <User size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Usuários", href: "/victoria/usuarios" },
       { icon: <CalendarDays size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />, label: "Agendamentos", href: "/victoria/agendamentos" },

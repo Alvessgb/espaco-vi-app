@@ -1,17 +1,16 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { CatalogClient } from "./catalog-client";
+import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
-
-const VICTORIA_EMAIL = "victoria@espacovi.com.br";
 
 export default async function ProcedimentosPage() {
   let procedures: Parameters<typeof CatalogClient>[0]["procedures"] = [];
   let categories: Parameters<typeof CatalogClient>[0]["categories"] = [];
 
   const session = await auth();
-  const isVictoria = session?.user?.email === VICTORIA_EMAIL;
+  const isAdmin = session?.user?.email === config.adminEmail;
 
   try {
     if (db) {
@@ -43,5 +42,5 @@ export default async function ProcedimentosPage() {
     console.error("[procedimentos] DB error:", err);
   }
 
-  return <CatalogClient procedures={procedures} categories={categories} isVictoria={isVictoria} />;
+  return <CatalogClient procedures={procedures} categories={categories} isAdmin={isAdmin} />;
 }

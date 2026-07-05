@@ -1,6 +1,6 @@
 import type { ThemeConfig } from 'antd';
 
-export const espacoViTheme: ThemeConfig = {
+export const studioTheme: ThemeConfig = {
   token: {
     colorPrimary: '#5F4B3C',
     colorBgBase: '#F5EBE0',

@@ -2,8 +2,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { config } from "@/lib/config";
 
-export default async function VictoriaLayout({ children }: { children: React.ReactNode }) {
+export default async function OwnerDashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   // @ts-expect-error role
   if (!session || session.user?.role !== "ADMIN") redirect("/conta");
@@ -19,7 +20,7 @@ export default async function VictoriaLayout({ children }: { children: React.Rea
           </Link>
           <div>
             <p className="text-white font-bold text-base leading-tight">Painel</p>
-            <p className="text-white/60 text-xs">Espaço Vi · Painel administrativo</p>
+            <p className="text-white/60 text-xs">{config.studioName} · Painel administrativo</p>
           </div>
         </div>
 
