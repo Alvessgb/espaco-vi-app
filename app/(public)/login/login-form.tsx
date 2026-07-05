@@ -113,7 +113,7 @@ export function LoginForm() {
         <div className="w-full bg-white rounded-2xl border border-[#E0C5AC] p-6 flex flex-col gap-4 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-base">🔒</span>
-            <p className="text-sm font-semibold text-[#3D2B1F]">Área da Victoria</p>
+            <p className="text-sm font-semibold text-[#3D2B1F]">Área administrativa</p>
           </div>
 
           <form onSubmit={handleAdminLogin} className="flex flex-col gap-3">
@@ -123,7 +123,7 @@ export function LoginForm() {
               autoComplete="email"
               value={adminEmail}
               onChange={(e) => setAdminEmail(e.target.value)}
-              placeholder="victoria@espacovi.com.br"
+              placeholder="admin@estudio.com"
               className="w-full border border-[#E0C5AC] rounded-full px-4 py-3 text-sm text-[#3D2B1F] placeholder:text-[#C4A080] outline-none focus:border-[#5F4B3C] transition-colors"
             />
             <input
