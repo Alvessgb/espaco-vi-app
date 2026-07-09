@@ -104,7 +104,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   const taxasHoje = appts.filter(a => a.payment?.status === "PAID").length * 30;
 
   const displayDate = day.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const blocks = buildTimeline(9, 18, appts);
+  const blocks = buildTimeline(9, 19, appts);
 
   return (
     <main className="px-4 pt-5 pb-10 max-w-lg mx-auto">

@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 
-export const BUSINESS_HOURS = { start: 9, end: 18 }; // hours (local time) — Ter–Sáb
-export const MIN_GAP_MINUTES = 15;
+export const BUSINESS_HOURS = { start: 9, end: 19 }; // hours (local time) — Ter–Sáb
 export const MIN_ADVANCE_HOURS = 2;
 
 export function calcularDuracaoTotal(
@@ -41,17 +40,11 @@ export async function verificarConflito(
   startTime: Date,
   endTime: Date
 ): Promise<boolean> {
-  // Buffer: a new slot can only start MIN_GAP_MINUTES after an existing appointment ends,
-  // and an existing appointment can only start MIN_GAP_MINUTES after the new slot ends.
-  const bufferMs = MIN_GAP_MINUTES * 60 * 1000;
-  const bufferedStart = new Date(startTime.getTime() - bufferMs);
-  const bufferedEnd   = new Date(endTime.getTime()   + bufferMs);
-
   const count = await db.appointment.count({
     where: {
       status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
-      startTime: { lt: bufferedEnd },
-      endTime:   { gt: bufferedStart },
+      startTime: { lt: endTime },
+      endTime:   { gt: startTime },
     },
   });
   return count > 0;
