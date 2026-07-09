@@ -37,10 +37,10 @@ type Block =
   | { kind: "appt"; time: string; appt: AgendaAppt }
   | { kind: "free"; time: string; minutes: number };
 
-function buildTimeline(startHour: number, endHour: number, appts: SerializedAppt[]): Block[] {
+function buildTimeline(startMinutes: number, endMinutes: number, appts: SerializedAppt[]): Block[] {
   const blocks: Block[] = [];
-  let cursor = startHour * 60;
-  const endMin = endHour * 60;
+  let cursor = startMinutes;
+  const endMin = endMinutes;
   const sorted = [...appts].sort((a, b) => a.startMinutes - b.startMinutes);
 
   while (cursor < endMin) {
@@ -104,7 +104,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   const taxasHoje = appts.filter(a => a.payment?.status === "PAID").length * 30;
 
   const displayDate = day.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const blocks = buildTimeline(9, 18, appts);
+  const blocks = buildTimeline(9 * 60, 18 * 60 + 30, appts);
 
   return (
     <main className="px-4 pt-5 pb-10 max-w-lg mx-auto">
