@@ -117,7 +117,7 @@ export function SchedulingClient() {
         <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
           <span className="text-2xl">📅</span>
           <p className="text-sm text-[#3D2B1F]">
-            <strong>{cartCount} {cartCount === 1 ? "procedimento" : "procedimentos"}</strong> · {formatDuration(duration)} · Ter a Sáb · 9h às 19h
+            <strong>{cartCount} {cartCount === 1 ? "procedimento" : "procedimentos"}</strong> · {formatDuration(duration)} · Ter a Sáb · 9h às 18h30
           </p>
         </div>
 
