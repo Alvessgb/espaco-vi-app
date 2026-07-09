@@ -69,5 +69,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, id: procedure.id, name: procedure.name });
   }
 
+  // Reativa o procedimento original com status PRICE_TO_CONFIRM e duração 90min
+  if (action === "activate-brow-lamination-coloracao") {
+    const updated = await db.procedure.update({
+      where: { slug: "brow-lamination-design-coloracao" },
+      data: { status: "PRICE_TO_CONFIRM", durationMinutes: 90 },
+    });
+    return NextResponse.json({ ok: true, name: updated.name, status: updated.status, duration: updated.durationMinutes });
+  }
+
   return NextResponse.json({ error: "action inválida" }, { status: 400 });
 }
