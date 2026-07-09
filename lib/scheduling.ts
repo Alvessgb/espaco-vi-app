@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 
-export const BUSINESS_HOURS = { start: 9, end: 19 }; // hours (local time) — Ter–Sáb
+// Horário de abertura em minutos a partir de meia-noite (9:00 = 540)
+// Horário de fechamento em minutos a partir de meia-noite (18:30 = 1110)
+export const BUSINESS_HOURS = { startMinutes: 9 * 60, endMinutes: 18 * 60 + 30 }; // Ter–Sáb
 export const MIN_ADVANCE_HOURS = 2;
 
 export function calcularDuracaoTotal(
@@ -15,22 +17,16 @@ export async function gerarSlotsDoDia(
   totalDurationMinutes: number
 ): Promise<string[]> {
   const slots: string[] = [];
-  const { start, end } = BUSINESS_HOURS;
+  const { startMinutes, endMinutes } = BUSINESS_HOURS;
 
-  for (let hour = start; hour < end; hour++) {
-    for (let min = 0; min < 60; min += 30) {
-      const slotStart = new Date(date);
-      slotStart.setHours(hour, min, 0, 0);
-      const slotEnd = new Date(slotStart);
-      slotEnd.setMinutes(slotEnd.getMinutes() + totalDurationMinutes);
+  for (let cursor = startMinutes; cursor < endMinutes; cursor += 30) {
+    const slotEndMinutes = cursor + totalDurationMinutes;
+    // Slot must finish by closing time
+    if (slotEndMinutes > endMinutes) break;
 
-      // Slot must finish by end of business
-      const endOfDay = new Date(date);
-      endOfDay.setHours(end, 0, 0, 0);
-      if (slotEnd > endOfDay) break;
-
-      slots.push(`${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`);
-    }
+    const h = Math.floor(cursor / 60);
+    const m = cursor % 60;
+    slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
   }
 
   return slots;
