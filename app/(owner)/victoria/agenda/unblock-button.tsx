@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Trash2, Loader2 } from "lucide-react";
 import { deleteScheduleBlock } from "@/lib/admin-actions";
 import { useRouter } from "next/navigation";
 
@@ -16,19 +17,27 @@ export function UnblockButton({ id }: { id: string }) {
     });
   }
 
+  if (isPending) {
+    return (
+      <div className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center">
+        <Loader2 size={13} strokeWidth={2} className="animate-spin text-red-400" />
+      </div>
+    );
+  }
+
   if (confirming) {
     return (
-      <div className="flex gap-2 mt-2">
+      <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#E0C5AC]">
+        <span className="text-[11px] text-[#8B6B5A] flex-1">Remover bloqueio?</span>
         <button
           onClick={handleConfirm}
-          disabled={isPending}
-          className="flex-1 bg-red-600 text-white rounded-full py-1.5 text-xs font-bold disabled:opacity-50"
+          className="text-[11px] font-bold text-red-600 px-3 py-1 rounded-full border border-red-200 hover:bg-red-50 transition-colors"
         >
-          {isPending ? "Removendo…" : "Sim, desbloquear"}
+          Remover
         </button>
         <button
           onClick={() => setConfirming(false)}
-          className="flex-1 border border-red-200 text-red-600 rounded-full py-1.5 text-xs font-medium"
+          className="text-[11px] text-[#8B6B5A] px-3 py-1 rounded-full border border-[#E0C5AC] hover:bg-[#F5EBE0] transition-colors"
         >
           Cancelar
         </button>
@@ -39,9 +48,10 @@ export function UnblockButton({ id }: { id: string }) {
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="mt-2 text-xs text-red-500 hover:text-red-700 font-medium underline underline-offset-2"
+      title="Desbloquear horário"
+      className="w-7 h-7 rounded-full bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
     >
-      Desbloquear horário
+      <Trash2 size={13} strokeWidth={2} />
     </button>
   );
 }

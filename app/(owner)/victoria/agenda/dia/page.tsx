@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { fmtDuration } from "@/lib/format";
+import { Users, Clock, TrendingUp, Lock } from "lucide-react";
 import { AgendaAppointmentCard } from "../agenda-card";
 import { UnblockButton } from "../unblock-button";
 import type { AgendaAppt } from "../agenda-card";
@@ -161,9 +163,9 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
     <main className="px-4 pt-5 pb-10 max-w-lg mx-auto">
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <StatCard value={appts.length} label="Clientes hoje" icon="👥" />
-        <StatCard value={fmtDuration(totalMinutes)} label="Horas ocupadas" icon="⏱" />
-        <StatCard value={`R$${taxasHoje}`} label="Taxas recebidas" icon="↗" />
+        <StatCard value={appts.length} label="Clientes hoje" icon={<Users size={16} strokeWidth={1.5} className="text-[#8B6B5A]" />} />
+        <StatCard value={fmtDuration(totalMinutes)} label="Horas ocupadas" icon={<Clock size={16} strokeWidth={1.5} className="text-[#8B6B5A]" />} />
+        <StatCard value={`R$${taxasHoje}`} label="Taxas recebidas" icon={<TrendingUp size={16} strokeWidth={1.5} className="text-[#8B6B5A]" />} />
       </div>
 
       {/* Próxima cliente */}
@@ -211,18 +213,24 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
           block.kind === "appt" ? (
             <AgendaAppointmentCard key={i} time={block.time} appt={block.appt} />
           ) : block.kind === "block" ? (
-            <div key={i} className="bg-red-50 border border-red-200 rounded-2xl p-4">
-              <div className="flex gap-3">
-                <div className="shrink-0 w-12">
-                  <p className="text-red-400 text-sm font-medium">{block.time}</p>
-                  <p className="text-[11px] text-red-400 mt-0.5">{fmtDuration(block.minutes)}</p>
+            <div key={i} className="bg-white rounded-2xl border border-[#E0C5AC] p-4 shadow-sm">
+              <div className="flex gap-3 items-start">
+                <div className="shrink-0 w-12 pt-0.5">
+                  <p className="font-bold text-[#3D2B1F] text-sm">{block.time}</p>
+                  <p className="text-[11px] text-[#8B6B5A] mt-0.5">{fmtDuration(block.minutes)}</p>
                 </div>
-                <div className="self-center">
-                  <p className="text-red-600 text-sm font-semibold">🔒 {block.reason}</p>
-                  {block.note && <p className="text-red-400 text-xs mt-0.5">{block.note}</p>}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <Lock size={12} strokeWidth={2} className="text-[#8B6B5A] shrink-0 mt-0.5" />
+                      <p className="font-bold text-[#3D2B1F] text-sm leading-tight">{block.reason}</p>
+                    </div>
+                    <UnblockButton id={block.id} />
+                  </div>
+                  {block.note && <p className="text-xs text-[#8B6B5A] mt-0.5 pl-[18px]">{block.note}</p>}
+                  <span className="inline-block mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#F5EBE0] text-[#8B6B5A]">Bloqueado</span>
                 </div>
               </div>
-              <UnblockButton id={block.id} />
             </div>
           ) : (
             <div key={i} className="border border-dashed border-[#E0C5AC] rounded-2xl p-4 flex gap-3">
@@ -239,10 +247,10 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   );
 }
 
-function StatCard({ value, label, icon }: { value: string | number; label: string; icon: string }) {
+function StatCard({ value, label, icon }: { value: string | number; label: string; icon: ReactNode }) {
   return (
     <div className="bg-white rounded-2xl border border-[#E0C5AC] p-3 shadow-sm">
-      <p className="text-lg mb-0.5">{icon}</p>
+      <div className="mb-1">{icon}</div>
       <p className="font-bold text-[#3D2B1F] text-xl leading-tight">{value}</p>
       <p className="text-xs text-[#8B6B5A] leading-tight mt-0.5">{label}</p>
     </div>
