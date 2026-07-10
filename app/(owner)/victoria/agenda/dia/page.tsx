@@ -33,30 +33,54 @@ interface SerializedAppt extends AgendaAppt {
   timeLabel: string;
 }
 
-type Block =
-  | { kind: "appt"; time: string; appt: AgendaAppt }
-  | { kind: "free"; time: string; minutes: number };
+interface SerializedBlock {
+  startMinutes: number;
+  durationMinutes: number;
+  reason: string;
+  note?: string | null;
+}
 
-function buildTimeline(startMinutes: number, endMinutes: number, appts: SerializedAppt[]): Block[] {
+type Block =
+  | { kind: "appt";  time: string; appt: AgendaAppt }
+  | { kind: "block"; time: string; minutes: number; reason: string; note?: string | null }
+  | { kind: "free";  time: string; minutes: number };
+
+type TimelineItem = { startMinutes: number; durationMinutes: number; kind: "appt" | "block" };
+
+function buildTimeline(
+  startMinutes: number,
+  endMinutes: number,
+  appts: SerializedAppt[],
+  scheduleBlocks: SerializedBlock[],
+): Block[] {
   const blocks: Block[] = [];
   let cursor = startMinutes;
   const endMin = endMinutes;
-  const sorted = [...appts].sort((a, b) => a.startMinutes - b.startMinutes);
+
+  const items: TimelineItem[] = [
+    ...appts.map(a => ({ startMinutes: a.startMinutes, durationMinutes: a.durationMinutes, kind: "appt" as const })),
+    ...scheduleBlocks.map(b => ({ startMinutes: b.startMinutes, durationMinutes: b.durationMinutes, kind: "block" as const })),
+  ].sort((a, b) => a.startMinutes - b.startMinutes);
 
   while (cursor < endMin) {
     const h = Math.floor(cursor / 60);
     const m = cursor % 60;
     const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 
-    const match = sorted.find(a => a.startMinutes === cursor);
-    if (match) {
-      const { startMinutes: _, timeLabel: __, ...clientAppt } = match;
+    const matchItem = items.find(it => it.startMinutes === cursor);
+    if (matchItem?.kind === "appt") {
+      const appt = appts.find(a => a.startMinutes === cursor)!;
+      const { startMinutes: _, timeLabel: __, ...clientAppt } = appt;
       void _; void __;
       blocks.push({ kind: "appt", time: timeStr, appt: clientAppt as AgendaAppt });
-      cursor += match.durationMinutes;
+      cursor += appt.durationMinutes;
+    } else if (matchItem?.kind === "block") {
+      const blk = scheduleBlocks.find(b => b.startMinutes === cursor)!;
+      blocks.push({ kind: "block", time: timeStr, minutes: blk.durationMinutes, reason: blk.reason, note: blk.note });
+      cursor += blk.durationMinutes;
     } else {
-      const next = sorted.find(a => a.startMinutes > cursor);
-      const gapEnd = next ? next.startMinutes : endMin;
+      const nextItem = items.find(it => it.startMinutes > cursor);
+      const gapEnd = nextItem ? nextItem.startMinutes : endMin;
       const gapMin = Math.min(gapEnd - cursor, endMin - cursor);
       if (gapMin > 0) blocks.push({ kind: "free", time: timeStr, minutes: gapMin });
       cursor += Math.max(gapMin, 30);
@@ -75,11 +99,17 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
   const dayEnd   = new Date(day); dayEnd.setHours(23, 59, 59, 999);
 
-  const raw = await db.appointment.findMany({
-    where: { startTime: { gte: dayStart, lte: dayEnd }, status: { notIn: ["CANCELLED"] } },
-    include: { user: { select: { name: true } }, procedures: true, payment: true },
-    orderBy: { startTime: "asc" },
-  });
+  const [raw, rawBlocks] = await Promise.all([
+    db.appointment.findMany({
+      where: { startTime: { gte: dayStart, lte: dayEnd }, status: { notIn: ["CANCELLED"] } },
+      include: { user: { select: { name: true } }, procedures: true, payment: true },
+      orderBy: { startTime: "asc" },
+    }),
+    db.scheduleBlock.findMany({
+      where: { startTime: { gte: dayStart, lte: dayEnd } },
+      orderBy: { startTime: "asc" },
+    }),
+  ]);
 
   // Serialise: extract only primitives + plain objects (no Date, no Prisma internals)
   const appts: SerializedAppt[] = raw.map(a => ({
@@ -96,6 +126,18 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
     _startTime:       a.startTime,
   } as SerializedAppt & { _startTime: Date }));
 
+  const BLOCK_REASON_LABEL: Record<string, string> = {
+    DAY_OFF: "Folga", COURSE: "Curso / Capacitação",
+    MAINTENANCE: "Manutenção", VACATION: "Férias", OTHER: "Bloqueio",
+  };
+
+  const scheduleBlocks: SerializedBlock[] = rawBlocks.map(b => ({
+    startMinutes: b.startTime.getHours() * 60 + b.startTime.getMinutes(),
+    durationMinutes: Math.round((b.endTime.getTime() - b.startTime.getTime()) / 60000),
+    reason: BLOCK_REASON_LABEL[b.reason] ?? b.reason,
+    note: b.note,
+  }));
+
   const now = new Date();
   const nextAppt = (appts as (SerializedAppt & { _startTime?: Date })[]).find(
     a => a.status === "CONFIRMED" && a._startTime && a._startTime > now
@@ -104,7 +146,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   const taxasHoje = appts.filter(a => a.payment?.status === "PAID").length * 30;
 
   const displayDate = day.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const blocks = buildTimeline(9 * 60, 18 * 60 + 30, appts);
+  const blocks = buildTimeline(9 * 60, 18 * 60 + 30, appts, scheduleBlocks);
 
   return (
     <main className="px-4 pt-5 pb-10 max-w-lg mx-auto">
@@ -159,6 +201,17 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
         {blocks.map((block, i) =>
           block.kind === "appt" ? (
             <AgendaAppointmentCard key={i} time={block.time} appt={block.appt} />
+          ) : block.kind === "block" ? (
+            <div key={i} className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3">
+              <div className="shrink-0 w-12">
+                <p className="text-red-400 text-sm font-medium">{block.time}</p>
+                <p className="text-[11px] text-red-400 mt-0.5">{fmtDuration(block.minutes)}</p>
+              </div>
+              <div className="self-center">
+                <p className="text-red-600 text-sm font-semibold">🔒 {block.reason}</p>
+                {block.note && <p className="text-red-400 text-xs mt-0.5">{block.note}</p>}
+              </div>
+            </div>
           ) : (
             <div key={i} className="border border-dashed border-[#E0C5AC] rounded-2xl p-4 flex gap-3">
               <div className="shrink-0 w-12">

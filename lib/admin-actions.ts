@@ -253,9 +253,13 @@ export async function rescheduleAppointment(
     const newStartTime = new Date(newStartTimeISO);
     const newEndTime = new Date(newStartTime.getTime() + appt.durationMinutes * 60 * 1000);
 
+    const { verificarConflito } = await import("@/lib/scheduling");
+    const conflict = await verificarConflito(newStartTime, newEndTime, appointmentId);
+    if (conflict) return { error: "Novo horário não está disponível." };
+
     await db.appointment.update({
       where: { id: appointmentId },
-      data: { startTime: newStartTime, endTime: newEndTime, status: "RESCHEDULED" },
+      data: { startTime: newStartTime, endTime: newEndTime, status: "CONFIRMED" },
     });
 
     revalidatePath("/victoria/agendamentos");
