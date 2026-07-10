@@ -129,8 +129,14 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   } as SerializedAppt & { _startTime: Date }));
 
   const BLOCK_REASON_LABEL: Record<string, string> = {
-    DAY_OFF: "Folga", COURSE: "Curso / Capacitação",
-    MAINTENANCE: "Manutenção", VACATION: "Férias", OTHER: "Bloqueio",
+    DAY_OFF: "Folga",
+    PERSONAL_COMMITMENT: "Compromisso pessoal",
+    COURSE: "Curso / Capacitação",
+    MAINTENANCE: "Manutenção",
+    SPACE_MAINTENANCE: "Manutenção do espaço",
+    RESERVED_TIME: "Horário reservado",
+    VACATION: "Férias",
+    OTHER: "Bloqueio",
   };
 
   const scheduleBlocks: SerializedBlock[] = rawBlocks.map(b => ({
