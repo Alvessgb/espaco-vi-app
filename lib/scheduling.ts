@@ -34,16 +34,26 @@ export async function gerarSlotsDoDia(
 
 export async function verificarConflito(
   startTime: Date,
-  endTime: Date
+  endTime: Date,
+  excludeAppointmentId?: string,
 ): Promise<boolean> {
-  const count = await db.appointment.count({
-    where: {
-      status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
-      startTime: { lt: endTime },
-      endTime:   { gt: startTime },
-    },
-  });
-  return count > 0;
+  const [apptCount, blockCount] = await Promise.all([
+    db.appointment.count({
+      where: {
+        ...(excludeAppointmentId ? { id: { not: excludeAppointmentId } } : {}),
+        status: { in: ["PENDING_PAYMENT", "CONFIRMED", "RESCHEDULED"] },
+        startTime: { lt: endTime },
+        endTime:   { gt: startTime },
+      },
+    }),
+    db.scheduleBlock.count({
+      where: {
+        startTime: { lt: endTime },
+        endTime:   { gt: startTime },
+      },
+    }),
+  ]);
+  return apptCount > 0 || blockCount > 0;
 }
 
 export async function filtrarSlotsDisponiveis(
