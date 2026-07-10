@@ -58,7 +58,8 @@ export async function verificarConflito(
 
 export async function filtrarSlotsDisponiveis(
   date: Date,
-  totalDurationMinutes: number
+  totalDurationMinutes: number,
+  excludeAppointmentId?: string,
 ): Promise<{ time: string; available: boolean }[]> {
   const slots = await gerarSlotsDoDia(date, totalDurationMinutes);
   const now = new Date();
@@ -78,7 +79,7 @@ export async function filtrarSlotsDisponiveis(
       continue;
     }
 
-    const conflict = await verificarConflito(slotStart, slotEnd);
+    const conflict = await verificarConflito(slotStart, slotEnd, excludeAppointmentId);
     results.push({ time: slot, available: !conflict });
   }
 

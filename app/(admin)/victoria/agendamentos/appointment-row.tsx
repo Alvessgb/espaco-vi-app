@@ -102,7 +102,7 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
     if (!dateVal) return;
     setLoadingSlots(true);
     try {
-      const res = await fetch(`/api/available-slots?date=${dateVal}&duration=${a.durationMinutes}`);
+      const res = await fetch(`/api/available-slots?date=${dateVal}&duration=${a.durationMinutes}&excludeId=${a.id}`);
       const data = await res.json();
       setSlots(data.slots ?? []);
     } catch {
