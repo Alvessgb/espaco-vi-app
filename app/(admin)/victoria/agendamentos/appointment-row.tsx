@@ -68,9 +68,11 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
   const [msg, setMsg]                       = useState<{ text: string; ok: boolean } | null>(null);
 
   const cfg = STATUS_CONFIG[a.status] ?? { label: a.status, color: "bg-gray-100 text-gray-500" };
-  const date = new Date(a.startTime);
-  const dateStr = date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const timeStr = date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  // Extract date/time directly from ISO string to avoid browser timezone conversion
+  const [isoDate, isoTime] = a.startTime.split("T");
+  const [yyyy, mm, dd] = isoDate.split("-");
+  const dateStr = `${dd}/${mm}/${yyyy}`;
+  const timeStr = isoTime.substring(0, 5);
 
   function flash(text: string, ok: boolean) {
     setMsg({ text, ok });

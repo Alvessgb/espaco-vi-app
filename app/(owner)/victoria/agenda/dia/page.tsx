@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { fmtDuration } from "@/lib/format";
 import { AgendaAppointmentCard } from "../agenda-card";
+import { UnblockButton } from "../unblock-button";
 import type { AgendaAppt } from "../agenda-card";
 
 function parseDateParam(d?: string) {
@@ -34,6 +35,7 @@ interface SerializedAppt extends AgendaAppt {
 }
 
 interface SerializedBlock {
+  id: string;
   startMinutes: number;
   durationMinutes: number;
   reason: string;
@@ -42,7 +44,7 @@ interface SerializedBlock {
 
 type Block =
   | { kind: "appt";  time: string; appt: AgendaAppt }
-  | { kind: "block"; time: string; minutes: number; reason: string; note?: string | null }
+  | { kind: "block"; time: string; minutes: number; id: string; reason: string; note?: string | null }
   | { kind: "free";  time: string; minutes: number };
 
 type TimelineItem = { startMinutes: number; durationMinutes: number; kind: "appt" | "block" };
@@ -76,7 +78,7 @@ function buildTimeline(
       cursor += appt.durationMinutes;
     } else if (matchItem?.kind === "block") {
       const blk = scheduleBlocks.find(b => b.startMinutes === cursor)!;
-      blocks.push({ kind: "block", time: timeStr, minutes: blk.durationMinutes, reason: blk.reason, note: blk.note });
+      blocks.push({ kind: "block", time: timeStr, minutes: blk.durationMinutes, id: blk.id, reason: blk.reason, note: blk.note });
       cursor += blk.durationMinutes;
     } else {
       const nextItem = items.find(it => it.startMinutes > cursor);
@@ -132,6 +134,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
   };
 
   const scheduleBlocks: SerializedBlock[] = rawBlocks.map(b => ({
+    id: b.id,
     startMinutes: b.startTime.getHours() * 60 + b.startTime.getMinutes(),
     durationMinutes: Math.round((b.endTime.getTime() - b.startTime.getTime()) / 60000),
     reason: BLOCK_REASON_LABEL[b.reason] ?? b.reason,
@@ -202,15 +205,18 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
           block.kind === "appt" ? (
             <AgendaAppointmentCard key={i} time={block.time} appt={block.appt} />
           ) : block.kind === "block" ? (
-            <div key={i} className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3">
-              <div className="shrink-0 w-12">
-                <p className="text-red-400 text-sm font-medium">{block.time}</p>
-                <p className="text-[11px] text-red-400 mt-0.5">{fmtDuration(block.minutes)}</p>
+            <div key={i} className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <div className="flex gap-3">
+                <div className="shrink-0 w-12">
+                  <p className="text-red-400 text-sm font-medium">{block.time}</p>
+                  <p className="text-[11px] text-red-400 mt-0.5">{fmtDuration(block.minutes)}</p>
+                </div>
+                <div className="self-center">
+                  <p className="text-red-600 text-sm font-semibold">🔒 {block.reason}</p>
+                  {block.note && <p className="text-red-400 text-xs mt-0.5">{block.note}</p>}
+                </div>
               </div>
-              <div className="self-center">
-                <p className="text-red-600 text-sm font-semibold">🔒 {block.reason}</p>
-                {block.note && <p className="text-red-400 text-xs mt-0.5">{block.note}</p>}
-              </div>
+              <UnblockButton id={block.id} />
             </div>
           ) : (
             <div key={i} className="border border-dashed border-[#E0C5AC] rounded-2xl p-4 flex gap-3">
