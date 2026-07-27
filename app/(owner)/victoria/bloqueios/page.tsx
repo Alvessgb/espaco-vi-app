@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { DeleteBlockButton } from "./delete-block-button";
 
 const reasonLabels: Record<string, string> = {
@@ -62,7 +63,16 @@ export default async function BloqueiosPage() {
                   <p className="font-poppins text-xs text-[#5F4B3C] mt-1">{reasonLabels[b.reason] ?? b.reason}</p>
                   {b.note && <p className="font-poppins text-xs text-[#8B6B5A] mt-0.5 italic">{b.note}</p>}
                 </div>
-                <DeleteBlockButton id={b.id} />
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    href={`/victoria/bloqueios/${b.id}/editar`}
+                    className="w-8 h-8 rounded-full bg-[#F5EBE0] flex items-center justify-center hover:bg-[#E0C5AC] transition-colors"
+                    title="Editar bloqueio"
+                  >
+                    <Pencil size={13} strokeWidth={1.5} className="text-[#5F4B3C]" />
+                  </Link>
+                  <DeleteBlockButton id={b.id} />
+                </div>
               </div>
             );
           })}

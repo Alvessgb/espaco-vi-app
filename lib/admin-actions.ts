@@ -66,9 +66,43 @@ export async function createScheduleBlock(data: {
 
 export async function deleteScheduleBlock(id: string): Promise<void> {
   await requireAdmin();
-
   await db.scheduleBlock.delete({ where: { id } });
   revalidatePath("/victoria/bloqueios");
+  revalidatePath("/victoria/agenda/dia");
+}
+
+export async function updateScheduleBlock(
+  id: string,
+  data: { date: string; startTime?: string; endTime?: string; allDay: boolean; reason: ScheduleBlockReason; note?: string }
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    let start: Date;
+    let end: Date;
+    let type: import("@prisma/client").ScheduleBlockType;
+
+    if (data.allDay) {
+      start = new Date(data.date + "T00:00:00");
+      end   = new Date(data.date + "T23:59:59");
+      type  = "FULL_DAY";
+    } else {
+      if (!data.startTime || !data.endTime) return { error: "Informe os horários." };
+      start = new Date(`${data.date}T${data.startTime}`);
+      end   = new Date(`${data.date}T${data.endTime}`);
+      type  = "TIME_RANGE";
+    }
+
+    await db.scheduleBlock.update({
+      where: { id },
+      data: { type, reason: data.reason, note: data.note ?? null, startTime: start, endTime: end },
+    });
+
+    revalidatePath("/victoria/bloqueios");
+    revalidatePath("/victoria/agenda/dia");
+    return {};
+  } catch {
+    return { error: "Erro ao atualizar bloqueio." };
+  }
 }
 
 export async function updateAppointmentStatus(

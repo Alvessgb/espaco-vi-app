@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { fmtDuration } from "@/lib/format";
-import { Users, Clock, TrendingUp, Lock } from "lucide-react";
+import { Users, Clock, TrendingUp, Lock, Pencil } from "lucide-react";
 import { AgendaAppointmentCard } from "../agenda-card";
 import { UnblockButton } from "../unblock-button";
 import type { AgendaAppt } from "../agenda-card";
@@ -225,7 +225,16 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
                       <Lock size={12} strokeWidth={2} className="text-[#8B6B5A] shrink-0 mt-0.5" />
                       <p className="font-bold text-[#3D2B1F] text-sm leading-tight">{block.reason}</p>
                     </div>
-                    <UnblockButton id={block.id} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        href={`/victoria/bloqueios/${block.id}/editar`}
+                        className="w-7 h-7 rounded-full bg-[#F5EBE0] flex items-center justify-center hover:bg-[#E0C5AC] transition-colors"
+                        title="Editar bloqueio"
+                      >
+                        <Pencil size={12} strokeWidth={1.5} className="text-[#5F4B3C]" />
+                      </Link>
+                      <UnblockButton id={block.id} />
+                    </div>
                   </div>
                   {block.note && <p className="text-xs text-[#8B6B5A] mt-0.5 pl-[18px]">{block.note}</p>}
                   <span className="inline-block mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#F5EBE0] text-[#8B6B5A]">Bloqueado</span>
