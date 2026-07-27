@@ -42,11 +42,12 @@ interface SerializedBlock {
   durationMinutes: number;
   reason: string;
   note?: string | null;
+  isFullDay: boolean;
 }
 
 type Block =
   | { kind: "appt";  time: string; appt: AgendaAppt }
-  | { kind: "block"; time: string; minutes: number; id: string; reason: string; note?: string | null }
+  | { kind: "block"; time: string; minutes: number; id: string; reason: string; note?: string | null; isFullDay: boolean }
   | { kind: "free";  time: string; minutes: number };
 
 type TimelineItem = { startMinutes: number; durationMinutes: number; kind: "appt" | "block" };
@@ -80,7 +81,7 @@ function buildTimeline(
       cursor += appt.durationMinutes;
     } else if (matchItem?.kind === "block") {
       const blk = scheduleBlocks.find(b => b.startMinutes === cursor)!;
-      blocks.push({ kind: "block", time: timeStr, minutes: blk.durationMinutes, id: blk.id, reason: blk.reason, note: blk.note });
+      blocks.push({ kind: "block", time: timeStr, minutes: blk.durationMinutes, id: blk.id, reason: blk.reason, note: blk.note, isFullDay: blk.isFullDay });
       cursor += blk.durationMinutes;
     } else {
       const nextItem = items.find(it => it.startMinutes > cursor);
@@ -141,13 +142,21 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
     OTHER: "Bloqueio",
   };
 
-  const scheduleBlocks: SerializedBlock[] = rawBlocks.map(b => ({
-    id: b.id,
-    startMinutes: b.startTime.getHours() * 60 + b.startTime.getMinutes(),
-    durationMinutes: Math.round((b.endTime.getTime() - b.startTime.getTime()) / 60000),
-    reason: BLOCK_REASON_LABEL[b.reason] ?? b.reason,
-    note: b.note,
-  }));
+  const BIZ_START = 9 * 60;
+  const BIZ_END   = 18 * 60 + 30;
+
+  const scheduleBlocks: SerializedBlock[] = rawBlocks.map(b => {
+    const isFullDay = b.type === "FULL_DAY";
+    return {
+      id: b.id,
+      // Full-day blocks start at midnight — pin them to business-hours start so they appear in the timeline
+      startMinutes: isFullDay ? BIZ_START : b.startTime.getHours() * 60 + b.startTime.getMinutes(),
+      durationMinutes: isFullDay ? BIZ_END - BIZ_START : Math.round((b.endTime.getTime() - b.startTime.getTime()) / 60000),
+      reason: BLOCK_REASON_LABEL[b.reason] ?? b.reason,
+      note: b.note,
+      isFullDay,
+    };
+  });
 
   const now = new Date();
   const nextAppt = (appts as (SerializedAppt & { _startTime?: Date })[]).find(
@@ -237,7 +246,9 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
                     </div>
                   </div>
                   {block.note && <p className="text-xs text-[#8B6B5A] mt-0.5 pl-[18px]">{block.note}</p>}
-                  <span className="inline-block mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#F5EBE0] text-[#8B6B5A]">Bloqueado</span>
+                  <span className="inline-block mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#F5EBE0] text-[#8B6B5A]">
+                    {block.isFullDay ? "Dia inteiro bloqueado" : "Horário bloqueado"}
+                  </span>
                 </div>
               </div>
             </div>
