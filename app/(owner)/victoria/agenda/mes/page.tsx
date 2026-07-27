@@ -134,8 +134,9 @@ export default async function AgendaMesPage({
             let countClass = "text-[#8B6B5A]";
 
             if (isFullBlocked) {
-              bgClass = "bg-[#F5EBE0]";
-              textClass = "text-[#C4A080]";
+              bgClass = "bg-[#3D2B1F]";
+              textClass = "text-white";
+              countClass = "text-white/70";
             } else if (isWeekend) {
               textClass = "text-[#C4A080]";
             } else if (count >= 5) {
@@ -163,7 +164,7 @@ export default async function AgendaMesPage({
               >
                 <span className={`text-sm font-semibold leading-none ${textClass}`}>{dayNum}</span>
                 {isFullBlocked ? (
-                  <Lock size={10} strokeWidth={2} className="text-[#C4A080]" />
+                  <Lock size={10} strokeWidth={2} className="text-white/70" />
                 ) : count > 0 ? (
                   <div className="flex items-center gap-0.5">
                     <span className={`text-[10px] font-medium ${countClass}`}>{count}x</span>
@@ -185,7 +186,7 @@ export default async function AgendaMesPage({
         <LegendItem color="bg-[#3D2B1F]" label="Lotado" />
         <LegendItem color="bg-[#E0C5AC]" label="Movimentado" />
         <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Leve" />
-        <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Bloqueio total" icon={<Lock size={8} strokeWidth={2} className="text-[#C4A080]" />} />
+        <LegendItem color="bg-[#3D2B1F]" label="Bloqueio total" icon={<Lock size={8} strokeWidth={2} className="text-white/70" />} />
         <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Bloqueio parcial" icon={<Lock size={8} strokeWidth={2} className="text-[#8B6B5A]" />} />
       </div>
 
