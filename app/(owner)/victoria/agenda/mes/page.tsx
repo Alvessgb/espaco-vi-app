@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { Lock } from "lucide-react";
 
 function parseMonthParam(m?: string): { year: number; month: number } {
   if (m) {
@@ -57,10 +59,14 @@ export default async function AgendaMesPage({
     const d = a.startTime.getDate();
     apptByDay[d] = (apptByDay[d] ?? 0) + 1;
   }
-  const blockedDays = new Set<number>();
+  const fullBlockedDays = new Set<number>();
+  const partialBlockDays = new Set<number>();
   for (const b of blocks) {
-    if (b.type === "FULL_DAY") blockedDays.add(b.startTime.getDate());
+    if (b.type === "FULL_DAY") fullBlockedDays.add(b.startTime.getDate());
+    else partialBlockDays.add(b.startTime.getDate());
   }
+  // backwards-compat alias used in legend
+  const blockedDays = fullBlockedDays;
 
   const taxasTotal = revenue._sum.amountInCents ?? 0;
   const totalProcedures = appointments.length;
@@ -116,17 +122,18 @@ export default async function AgendaMesPage({
             const dayNum = i + 1;
             const dayDate = new Date(year, month, dayNum);
             const isToday = dayDate.toDateString() === today.toDateString();
-            const isBlocked = blockedDays.has(dayNum);
+            const isFullBlocked = fullBlockedDays.has(dayNum);
+            const hasPartialBlock = partialBlockDays.has(dayNum);
             const count = apptByDay[dayNum] ?? 0;
             const dow = dayDate.getDay();
-            const isWeekend = dow === 0; // Sunday only (Sat is open)
+            const isWeekend = dow === 0;
             const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
 
             let bgClass = "bg-transparent";
             let textClass = "text-[#3D2B1F]";
             let countClass = "text-[#8B6B5A]";
 
-            if (isBlocked) {
+            if (isFullBlocked) {
               bgClass = "bg-[#F5EBE0]";
               textClass = "text-[#C4A080]";
             } else if (isWeekend) {
@@ -143,6 +150,9 @@ export default async function AgendaMesPage({
               bgClass = "bg-[#F5EBE0]";
               textClass = "text-[#3D2B1F]";
               countClass = "text-[#8B6B5A]";
+            } else if (hasPartialBlock) {
+              bgClass = "bg-[#F5EBE0]";
+              textClass = "text-[#8B6B5A]";
             }
 
             return (
@@ -152,10 +162,15 @@ export default async function AgendaMesPage({
                 className={`rounded-xl py-2 px-1 flex flex-col items-center gap-0.5 min-h-[52px] justify-center transition-all hover:opacity-80 ${bgClass} ${isToday ? "ring-2 ring-[#5F4B3C]" : ""}`}
               >
                 <span className={`text-sm font-semibold leading-none ${textClass}`}>{dayNum}</span>
-                {isBlocked ? (
-                  <span className="text-xs text-[#C4A080]">🔒</span>
+                {isFullBlocked ? (
+                  <Lock size={10} strokeWidth={2} className="text-[#C4A080]" />
                 ) : count > 0 ? (
-                  <span className={`text-[10px] font-medium ${countClass}`}>{count}x</span>
+                  <div className="flex items-center gap-0.5">
+                    <span className={`text-[10px] font-medium ${countClass}`}>{count}x</span>
+                    {hasPartialBlock && <Lock size={8} strokeWidth={2} className="text-[#C4A080]" />}
+                  </div>
+                ) : hasPartialBlock ? (
+                  <Lock size={10} strokeWidth={2} className="text-[#8B6B5A]" />
                 ) : (
                   <span className="text-[10px] text-[#E0C5AC]">·</span>
                 )}
@@ -170,7 +185,8 @@ export default async function AgendaMesPage({
         <LegendItem color="bg-[#3D2B1F]" label="Lotado" />
         <LegendItem color="bg-[#E0C5AC]" label="Movimentado" />
         <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Leve" />
-        <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Bloqueado" icon="🔒" />
+        <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Bloqueio total" icon={<Lock size={8} strokeWidth={2} className="text-[#C4A080]" />} />
+        <LegendItem color="bg-[#F5EBE0] border border-[#E0C5AC]" label="Bloqueio parcial" icon={<Lock size={8} strokeWidth={2} className="text-[#8B6B5A]" />} />
       </div>
 
       {/* Revenue card */}
@@ -183,11 +199,11 @@ export default async function AgendaMesPage({
   );
 }
 
-function LegendItem({ color, label, icon }: { color: string; label: string; icon?: string }) {
+function LegendItem({ color, label, icon }: { color: string; label: string; icon?: ReactNode }) {
   return (
     <div className="flex items-center gap-1.5">
       <div className={`w-3 h-3 rounded-sm ${color} flex items-center justify-center`}>
-        {icon && <span className="text-[8px]">{icon}</span>}
+        {icon}
       </div>
       <span className="text-xs text-[#8B6B5A]">{label}</span>
     </div>
