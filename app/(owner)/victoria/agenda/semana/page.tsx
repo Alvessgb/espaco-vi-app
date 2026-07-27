@@ -2,7 +2,10 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { Lock, Pencil } from "lucide-react";
+import { fmtDuration } from "@/lib/format";
 import { AgendaAppointmentCard } from "../agenda-card";
+import { UnblockButton } from "../unblock-button";
 
 function getWeekStart(d: Date): Date {
   const dow = d.getDay();
@@ -35,6 +38,20 @@ const WEEK_DAYS = [
   { label: "Sáb", offset: 4 },
 ];
 
+const BLOCK_REASON_LABEL: Record<string, string> = {
+  DAY_OFF: "Folga",
+  PERSONAL_COMMITMENT: "Compromisso pessoal",
+  COURSE: "Curso / Capacitação",
+  MAINTENANCE: "Manutenção",
+  SPACE_MAINTENANCE: "Manutenção do espaço",
+  RESERVED_TIME: "Horário reservado",
+  VACATION: "Férias",
+  OTHER: "Bloqueio",
+};
+
+const BIZ_START = 9 * 60;
+const BIZ_END   = 18 * 60 + 30;
+
 export default async function AgendaSemanaPage({
   searchParams,
 }: {
@@ -49,16 +66,26 @@ export default async function AgendaSemanaPage({
   const weekEnd = addDays(weekStart, 4);
   weekEnd.setHours(23, 59, 59, 999);
 
-  const appointments = await db.appointment.findMany({
-    where: {
-      startTime: { gte: weekStart, lte: weekEnd },
-      status: { notIn: ["CANCELLED"] },
-    },
-    include: { user: { select: { name: true } }, procedures: true, payment: true },
-    orderBy: { startTime: "asc" },
-  });
+  const [appointments, scheduleBlocksRaw] = await Promise.all([
+    db.appointment.findMany({
+      where: {
+        startTime: { gte: weekStart, lte: weekEnd },
+        status: { notIn: ["CANCELLED"] },
+      },
+      include: {
+        user: { select: { name: true } },
+        procedures: true,
+        payment: true,
+      },
+      orderBy: { startTime: "asc" },
+    }),
+    db.scheduleBlock.findMany({
+      where: { startTime: { gte: weekStart, lte: weekEnd } },
+      orderBy: { startTime: "asc" },
+    }),
+  ]);
 
-  // Serialise: strip Date objects before passing to Client Components
+  // Serialise appointments
   const serialised = appointments.map(a => ({
     id: a.id,
     status: a.status as string,
@@ -68,12 +95,31 @@ export default async function AgendaSemanaPage({
     procedures: a.procedures.map(p => ({ name: p.name })),
     payment: a.payment ? { status: a.payment.status as string } : null,
     dateKey: fmtParam(a.startTime),
-    timeStr: a.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    timeStr: `${String(a.startTime.getHours()).padStart(2, "0")}:${String(a.startTime.getMinutes()).padStart(2, "0")}`,
   }));
+
+  // Serialise schedule blocks
+  const serialisedBlocks = scheduleBlocksRaw.map(b => {
+    const isFullDay = b.type === "FULL_DAY";
+    return {
+      id: b.id,
+      dateKey: fmtParam(b.startTime),
+      timeStr: isFullDay ? "09:00" : `${String(b.startTime.getHours()).padStart(2, "0")}:${String(b.startTime.getMinutes()).padStart(2, "0")}`,
+      startMinutes: isFullDay ? BIZ_START : b.startTime.getHours() * 60 + b.startTime.getMinutes(),
+      durationMinutes: isFullDay ? BIZ_END - BIZ_START : Math.round((b.endTime.getTime() - b.startTime.getTime()) / 60000),
+      reason: BLOCK_REASON_LABEL[b.reason] ?? b.reason,
+      note: b.note,
+      isFullDay,
+    };
+  });
 
   const countByDay: Record<string, number> = {};
   for (const a of serialised) {
     countByDay[a.dateKey] = (countByDay[a.dateKey] ?? 0) + 1;
+  }
+  const hasBlockByDay: Record<string, boolean> = {};
+  for (const b of serialisedBlocks) {
+    hasBlockByDay[b.dateKey] = true;
   }
 
   const maxCount = Math.max(1, ...Object.values(countByDay));
@@ -82,6 +128,20 @@ export default async function AgendaSemanaPage({
   const dayAppts = serialised
     .filter(a => a.dateKey === selectedDateStr)
     .sort((a, b) => a.timeStr.localeCompare(b.timeStr));
+  const dayBlocks = serialisedBlocks
+    .filter(b => b.dateKey === selectedDateStr)
+    .sort((a, b) => a.startMinutes - b.startMinutes);
+
+  // Merge appointments + blocks into a sorted timeline for the selected day
+  type DayItem =
+    | { kind: "appt"; timeStr: string; data: typeof dayAppts[0] }
+    | { kind: "block"; timeStr: string; data: typeof dayBlocks[0] };
+
+  const dayItems: DayItem[] = [
+    ...dayAppts.map(a => ({ kind: "appt" as const, timeStr: a.timeStr, data: a })),
+    ...dayBlocks.map(b => ({ kind: "block" as const, timeStr: b.timeStr, data: b })),
+  ].sort((a, b) => a.timeStr.localeCompare(b.timeStr));
+
   const selectedDate = new Date(selectedDateStr + "T00:00:00");
 
   const prevWeek = fmtParam(addDays(weekStart, -7));
@@ -95,6 +155,7 @@ export default async function AgendaSemanaPage({
           const dayDate = addDays(weekStart, offset);
           const dateStr = fmtParam(dayDate);
           const count = countByDay[dateStr] ?? 0;
+          const hasBlock = hasBlockByDay[dateStr] ?? false;
           const isSelected = selectedDateStr === dateStr;
           const isToday = dateStr === fmtParam(new Date());
 
@@ -110,12 +171,16 @@ export default async function AgendaSemanaPage({
               <span className={`text-xl font-bold leading-none ${isSelected ? "text-white" : isToday ? "text-[#5F4B3C]" : "text-[#3D2B1F]"}`}>
                 {dayDate.getDate()}
               </span>
-              <div className="flex gap-0.5 mt-0.5 h-2">
+              <div className="flex items-center gap-0.5 mt-0.5 h-2">
                 {count > 0
-                  ? Array.from({ length: Math.min(count, 5) }).map((_, i) => (
+                  ? Array.from({ length: Math.min(count, 4) }).map((_, i) => (
                       <span key={i} className={`w-1 h-1 rounded-full ${isSelected ? "bg-white/60" : "bg-[#5F4B3C]"}`} />
                     ))
-                  : <span className="w-1 h-1 rounded-full bg-transparent" />}
+                  : null}
+                {hasBlock && (
+                  <Lock size={8} strokeWidth={2} className={isSelected ? "text-white/60" : "text-[#C4A080]"} />
+                )}
+                {!count && !hasBlock && <span className="w-1 h-1 rounded-full bg-transparent" />}
               </div>
             </Link>
           );
@@ -158,26 +223,65 @@ export default async function AgendaSemanaPage({
         >Próxima →</Link>
       </div>
 
-      {/* Atendimentos do dia selecionado — mesmos cards da view Dia */}
+      {/* Atendimentos + bloqueios do dia selecionado */}
       <div>
-        <h2 className="font-bold text-[#3D2B1F] text-base mb-3">
-          {selectedDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "short" })}
-          {" · "}{dayAppts.length} atendimento{dayAppts.length !== 1 ? "s" : ""}
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-[#3D2B1F] text-base">
+            {selectedDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "short" })}
+            {" · "}{dayAppts.length} atendimento{dayAppts.length !== 1 ? "s" : ""}
+            {dayBlocks.length > 0 && ` · ${dayBlocks.length} bloqueio${dayBlocks.length !== 1 ? "s" : ""}`}
+          </h2>
+          <Link
+            href="/victoria/bloqueios/novo"
+            className="flex items-center gap-1 bg-[#F5EBE0] border border-[#E0C5AC] rounded-full px-3 py-1.5 text-xs font-semibold text-[#5F4B3C]"
+          >
+            <Lock size={11} strokeWidth={2} />
+            Bloquear
+          </Link>
+        </div>
 
-        {dayAppts.length === 0 ? (
+        {dayItems.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-[#E0C5AC] p-6 text-center">
             <p className="text-[#8B6B5A] text-sm">Nenhum atendimento neste dia.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {dayAppts.map(appt => (
-              <AgendaAppointmentCard
-                key={appt.id}
-                time={appt.timeStr}
-                appt={appt}
-              />
-            ))}
+            {dayItems.map((item, i) =>
+              item.kind === "appt" ? (
+                <AgendaAppointmentCard key={i} time={item.data.timeStr} appt={item.data} />
+              ) : (
+                <div key={i} className="bg-white rounded-2xl border border-[#E0C5AC] p-4 shadow-sm">
+                  <div className="flex gap-3 items-start">
+                    <div className="shrink-0 w-12 pt-0.5">
+                      <p className="font-bold text-[#3D2B1F] text-sm">{item.data.timeStr}</p>
+                      <p className="text-[11px] text-[#8B6B5A] mt-0.5">{fmtDuration(item.data.durationMinutes)}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <Lock size={12} strokeWidth={2} className="text-[#8B6B5A] shrink-0 mt-0.5" />
+                          <p className="font-bold text-[#3D2B1F] text-sm leading-tight">{item.data.reason}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Link
+                            href={`/victoria/bloqueios/${item.data.id}/editar`}
+                            className="w-7 h-7 rounded-full bg-[#F5EBE0] flex items-center justify-center hover:bg-[#E0C5AC] transition-colors"
+                            title="Editar bloqueio"
+                          >
+                            <Pencil size={12} strokeWidth={1.5} className="text-[#5F4B3C]" />
+                          </Link>
+                          <UnblockButton id={item.data.id} />
+                        </div>
+                      </div>
+                      {item.data.note && <p className="text-xs text-[#8B6B5A] mt-0.5 pl-[18px]">{item.data.note}</p>}
+                      <span className="inline-block mt-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#F5EBE0] text-[#8B6B5A]">
+                        {item.data.isFullDay ? "Dia inteiro bloqueado" : "Horário bloqueado"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
           </div>
         )}
       </div>
