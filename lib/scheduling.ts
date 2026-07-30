@@ -60,6 +60,7 @@ export async function filtrarSlotsDisponiveis(
   date: Date,
   totalDurationMinutes: number,
   excludeAppointmentId?: string,
+  bypassAdvance?: boolean,
 ): Promise<{ time: string; available: boolean }[]> {
   const slots = await gerarSlotsDoDia(date, totalDurationMinutes);
   const now = new Date();
@@ -74,7 +75,7 @@ export async function filtrarSlotsDisponiveis(
     const slotEnd = new Date(slotStart);
     slotEnd.setMinutes(slotEnd.getMinutes() + totalDurationMinutes);
 
-    if (slotStart < minAdvance) {
+    if (!bypassAdvance && slotStart < minAdvance) {
       results.push({ time: slot, available: false });
       continue;
     }
