@@ -60,7 +60,7 @@ export default async function PainelPage() {
       </div>
 
       {/* Quick actions */}
-      <Link href="/victoria/bloqueios/novo" className="flex items-center gap-3 bg-white rounded-2xl border border-[#E0C5AC] px-5 py-4 shadow-sm hover:bg-[#F5EBE0] transition-colors">
+      <Link href="/victoria/bloqueios/novo?returnTo=/victoria/painel" className="flex items-center gap-3 bg-white rounded-2xl border border-[#E0C5AC] px-5 py-4 shadow-sm hover:bg-[#F5EBE0] transition-colors">
         <Lock size={18} strokeWidth={1.5} className="text-[#5F4B3C]" />
         <span className="text-sm font-medium text-[#3D2B1F]">Bloquear horário ou dia</span>
       </Link>

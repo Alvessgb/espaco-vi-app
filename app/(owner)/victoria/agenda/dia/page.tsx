@@ -200,7 +200,10 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
       {/* Date header + Bloquear */}
       <div className="flex items-center gap-3 mb-4">
         <h2 className="font-bold text-[#3D2B1F] flex-1 capitalize text-sm">{displayDate}</h2>
-        <Link href="/victoria/bloqueios/novo" className="flex items-center gap-1.5 bg-[#F5EBE0] border border-[#E0C5AC] rounded-full px-4 py-2 text-xs font-semibold text-[#5F4B3C]">
+        <Link
+          href={`/victoria/bloqueios/novo?date=${fmtDate(day)}&returnTo=/victoria/agenda/dia?date=${fmtDate(day)}`}
+          className="flex items-center gap-1.5 bg-[#F5EBE0] border border-[#E0C5AC] rounded-full px-4 py-2 text-xs font-semibold text-[#5F4B3C]"
+        >
           🔒 Bloquear
         </Link>
       </div>

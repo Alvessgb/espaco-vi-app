@@ -24,10 +24,15 @@ const TIME_OPTIONS = [
 
 const inputCls = "w-full border border-[#E0C5AC] rounded-2xl px-4 py-3.5 text-sm text-[#3D2B1F] placeholder:text-[#C4A080] outline-none focus:border-[#5F4B3C] bg-[#FDFAF7]";
 
-export function NovoBlockForm() {
+interface Props {
+  initialDate?: string;
+  returnTo?: string;
+}
+
+export function NovoBlockForm({ initialDate = "", returnTo }: Props) {
   const router = useRouter();
   const [allDay, setAllDay]     = useState(true);
-  const [date, setDate]         = useState("");
+  const [date, setDate]         = useState(initialDate);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime]   = useState("");
   const [reason, setReason]     = useState<ScheduleBlockReason>("DAY_OFF");
@@ -42,7 +47,11 @@ export function NovoBlockForm() {
     try {
       await createScheduleBlock({ date, startTime, endTime, allDay, reason, note });
       toast.success(allDay ? "Dia bloqueado com sucesso." : "Horário bloqueado com sucesso.");
-      router.push("/victoria/agenda/dia");
+      if (returnTo) {
+        router.push(returnTo);
+      } else {
+        router.back();
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao bloquear");
     } finally {

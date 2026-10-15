@@ -232,7 +232,7 @@ export default async function AgendaSemanaPage({
             {dayBlocks.length > 0 && ` · ${dayBlocks.length} bloqueio${dayBlocks.length !== 1 ? "s" : ""}`}
           </h2>
           <Link
-            href="/victoria/bloqueios/novo"
+            href={`/victoria/bloqueios/novo?date=${selectedDateStr}&returnTo=/victoria/agenda/semana?week=${fmtParam(weekStart)}%26day=${selectedDateStr}`}
             className="flex items-center gap-1 bg-[#F5EBE0] border border-[#E0C5AC] rounded-full px-3 py-1.5 text-xs font-semibold text-[#5F4B3C]"
           >
             <Lock size={11} strokeWidth={2} />
