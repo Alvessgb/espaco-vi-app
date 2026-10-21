@@ -239,7 +239,7 @@ export default async function AgendaDiaPage({ searchParams }: { searchParams: Pr
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Link
-                        href={`/victoria/bloqueios/${block.id}/editar`}
+                        href={`/victoria/bloqueios/${block.id}/editar?returnTo=${encodeURIComponent(`/victoria/agenda/dia?date=${fmtDate(day)}`)}`}
                         className="w-7 h-7 rounded-full bg-[#F5EBE0] flex items-center justify-center hover:bg-[#E0C5AC] transition-colors"
                         title="Editar bloqueio"
                       >

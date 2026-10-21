@@ -65,7 +65,7 @@ export default async function BloqueiosPage() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
-                    href={`/victoria/bloqueios/${b.id}/editar`}
+                    href={`/victoria/bloqueios/${b.id}/editar?returnTo=${encodeURIComponent("/victoria/bloqueios")}`}
                     className="w-8 h-8 rounded-full bg-[#F5EBE0] flex items-center justify-center hover:bg-[#E0C5AC] transition-colors"
                     title="Editar bloqueio"
                   >

@@ -5,14 +5,16 @@ import { EditBlockForm } from "./edit-block-form";
 
 export default async function EditarBloqueioPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 }) {
   const session = await auth();
   // @ts-expect-error role
   if (!session || session.user?.role !== "ADMIN") redirect("/login");
 
-  const { id } = await params;
+  const [{ id }, { returnTo }] = await Promise.all([params, searchParams]);
   const block = await db.scheduleBlock.findUnique({ where: { id } });
   if (!block) notFound();
 
@@ -33,6 +35,7 @@ export default async function EditarBloqueioPage({
       initialAllDay={block.type === "FULL_DAY"}
       initialReason={block.reason}
       initialNote={block.note ?? ""}
+      returnTo={returnTo}
     />
   );
 }

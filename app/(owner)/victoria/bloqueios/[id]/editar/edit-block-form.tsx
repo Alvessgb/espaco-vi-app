@@ -32,11 +32,12 @@ interface Props {
   initialAllDay: boolean;
   initialReason: ScheduleBlockReason;
   initialNote: string;
+  returnTo?: string;
 }
 
 export function EditBlockForm({
   id, initialDate, initialStartTime, initialEndTime,
-  initialAllDay, initialReason, initialNote,
+  initialAllDay, initialReason, initialNote, returnTo,
 }: Props) {
   const router = useRouter();
   const [allDay, setAllDay]       = useState(initialAllDay);
@@ -56,7 +57,11 @@ export function EditBlockForm({
       const res = await updateScheduleBlock(id, { date, startTime, endTime, allDay, reason, note });
       if (res.error) { toast.error(res.error); return; }
       toast.success("Bloqueio atualizado.");
-      router.push("/victoria/bloqueios");
+      if (returnTo) {
+        router.push(returnTo);
+      } else {
+        router.back();
+      }
     } catch {
       toast.error("Erro ao atualizar bloqueio.");
     } finally {
