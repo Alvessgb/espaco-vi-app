@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import {
   User, Calendar, Clock, ChevronDown, ChevronUp,
-  Trash2, RefreshCw, CalendarRange, Loader2,
+  Trash2, RefreshCw, CalendarRange, Loader2, Pencil, Check,
 } from "lucide-react";
 import {
   updateAppointmentStatusAdmin,
   deleteAppointment,
   rescheduleAppointment,
+  updateAppointmentProcedures,
 } from "@/lib/admin-actions";
 import type { AppointmentStatus } from "@prisma/client";
 
@@ -20,10 +21,17 @@ interface ApptData {
   durationMinutes: number;
   totalPriceInCents: number;
   user: { id: string; name: string | null; email: string; phone: string | null };
-  procedures: { name: string; priceInCents: number }[];
+  procedures: { id: string; procedureId: string; name: string; priceInCents: number }[];
   paymentStatus: string | null;
   paidAt: string | null;
   createdAt: string;
+}
+
+interface AvailableProcedure {
+  id: string;
+  name: string;
+  priceInCents: number | null;
+  durationMinutes: number | null;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -55,7 +63,7 @@ function todayStr() {
 
 interface Slot { time: string; available: boolean }
 
-export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
+export function AppointmentRow({ appointment: a, availableProcedures }: { appointment: ApptData; availableProcedures: AvailableProcedure[] }) {
   const [open, setOpen]                   = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
   const [confirmDelete, setConfirmDelete]   = useState(false);
@@ -64,6 +72,9 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
   const [slots, setSlots]                   = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots]     = useState(false);
   const [selectedSlot, setSelectedSlot]     = useState("");
+  const [editProceduresMode, setEditProceduresMode] = useState(false);
+  const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>([]);
+  const [customPrice, setCustomPrice] = useState("");
   const [isPending, startTransition]        = useTransition();
   const [msg, setMsg]                       = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -110,6 +121,30 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
     } finally {
       setLoadingSlots(false);
     }
+  }
+
+  function openEditProcedures() {
+    setSelectedProcedureIds(a.procedures.map(p => p.procedureId));
+    setCustomPrice("");
+    setEditProceduresMode(true);
+  }
+
+  function toggleProcedure(id: string) {
+    setSelectedProcedureIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  }
+
+  function handleSaveProcedures() {
+    const customCents = customPrice ? Math.round(parseFloat(customPrice.replace(",", ".")) * 100) : null;
+    startTransition(async () => {
+      const res = await updateAppointmentProcedures(a.id, selectedProcedureIds, customCents);
+      if (res.error) flash(res.error, false);
+      else {
+        flash("Procedimentos atualizados!", true);
+        setEditProceduresMode(false);
+      }
+    });
   }
 
   function handleReschedule() {
@@ -218,6 +253,71 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
             </div>
           )}
 
+          {/* Editar procedimentos */}
+          {editProceduresMode && (
+            <div className="bg-[#F5EBE0] rounded-xl p-3 flex flex-col gap-3">
+              <p className="text-xs font-bold text-[#3D2B1F]">Editar procedimentos</p>
+              <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto">
+                {availableProcedures.map(p => {
+                  const checked = selectedProcedureIds.includes(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleProcedure(p.id)}
+                      className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-xs transition-colors text-left ${
+                        checked
+                          ? "bg-[#3D2B1F] text-white border-[#3D2B1F]"
+                          : "bg-white border-[#E0C5AC] text-[#5F4B3C]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center ${checked ? "bg-white/20 border-white/40" : "border-[#C4A080]"}`}>
+                          {checked && <Check size={10} strokeWidth={2.5} className="text-white" />}
+                        </span>
+                        {p.name}
+                      </span>
+                      {p.priceInCents != null && (
+                        <span className={`shrink-0 ${checked ? "text-white/70" : "text-[#8B6B5A]"}`}>{fmt(p.priceInCents)}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <div>
+                <label className="text-[10px] text-[#8B6B5A] uppercase tracking-wide font-medium block mb-1">Valor personalizado (opcional)</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#8B6B5A]">R$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0,00 — deixe vazio para somar os procedimentos"
+                    value={customPrice}
+                    onChange={e => setCustomPrice(e.target.value)}
+                    className="flex-1 bg-white border border-[#E0C5AC] rounded-xl px-3 py-2 text-sm text-[#3D2B1F] outline-none focus:border-[#5F4B3C]"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveProcedures}
+                  disabled={selectedProcedureIds.length === 0 || isPending}
+                  className="flex-1 bg-[#3D2B1F] text-white rounded-full py-2.5 text-xs font-bold disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {isPending && <Loader2 size={12} strokeWidth={2} className="animate-spin" />}
+                  Salvar
+                </button>
+                <button
+                  onClick={() => setEditProceduresMode(false)}
+                  className="px-4 border border-[#E0C5AC] text-[#5F4B3C] rounded-full py-2.5 text-xs font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Remarcar */}
           {rescheduleMode && (
             <div className="bg-[#F5EBE0] rounded-xl p-3 flex flex-col gap-3">
@@ -231,7 +331,7 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
                   min={todayStr()}
                   value={rescheduleDate}
                   onChange={e => handleDateChange(e.target.value)}
-                  className="w-full bg-white border border-[#E0C5AC] rounded-xl px-3 py-2.5 text-sm text-[#3D2B1F] outline-none focus:border-[#5F4B3C]"
+                  className="w-full max-w-full box-border bg-white border border-[#E0C5AC] rounded-xl px-3 py-2.5 text-sm text-[#3D2B1F] outline-none focus:border-[#5F4B3C]"
                 />
               </div>
 
@@ -300,13 +400,19 @@ export function AppointmentRow({ appointment: a }: { appointment: ApptData }) {
           )}
 
           {/* Ações principais */}
-          {!changingStatus && !confirmDelete && !rescheduleMode && (
+          {!changingStatus && !confirmDelete && !rescheduleMode && !editProceduresMode && (
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setChangingStatus(true)}
                 className="flex items-center gap-1.5 px-4 py-2 bg-[#F5EBE0] text-[#5F4B3C] rounded-full text-xs font-medium hover:bg-[#E0C5AC] transition-colors"
               >
                 <RefreshCw size={12} strokeWidth={1.5} />Alterar status
+              </button>
+              <button
+                onClick={openEditProcedures}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#F5EBE0] text-[#5F4B3C] rounded-full text-xs font-medium hover:bg-[#E0C5AC] transition-colors"
+              >
+                <Pencil size={12} strokeWidth={1.5} />Procedimentos
               </button>
               <button
                 onClick={() => setRescheduleMode(true)}

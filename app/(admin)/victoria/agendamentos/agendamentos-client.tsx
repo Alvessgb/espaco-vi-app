@@ -15,10 +15,17 @@ interface ApptData {
   durationMinutes: number;
   totalPriceInCents: number;
   user: { id: string; name: string | null; email: string; phone: string | null };
-  procedures: { name: string; priceInCents: number }[];
+  procedures: { id: string; procedureId: string; name: string; priceInCents: number }[];
   paymentStatus: string | null;
   paidAt: string | null;
   createdAt: string;
+}
+
+interface AvailableProcedure {
+  id: string;
+  name: string;
+  priceInCents: number | null;
+  durationMinutes: number | null;
 }
 
 const STATUS_LABELS: Record<StatusFilter, string> = {
@@ -29,7 +36,7 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   CANCELLED:       "Cancelados",
 };
 
-export function AgendamentosClient({ appointments }: { appointments: ApptData[] }) {
+export function AgendamentosClient({ appointments, availableProcedures }: { appointments: ApptData[]; availableProcedures: AvailableProcedure[] }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("createdAt_desc");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
@@ -152,7 +159,7 @@ export function AgendamentosClient({ appointments }: { appointments: ApptData[] 
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(appt => (
-            <AppointmentRow key={appt.id} appointment={appt} />
+            <AppointmentRow key={appt.id} appointment={appt} availableProcedures={availableProcedures} />
           ))}
         </div>
       )}

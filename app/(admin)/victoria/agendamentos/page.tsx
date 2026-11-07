@@ -10,14 +10,21 @@ export default async function AgendamentosPage() {
   // @ts-expect-error role
   if (!session || session.user?.role !== "ADMIN") redirect("/conta");
 
-  const appointments = await db.appointment.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { id: true, name: true, email: true, phone: true } },
-      procedures: { select: { name: true, priceInCents: true } },
-      payment: { select: { status: true, paidAt: true } },
-    },
-  });
+  const [appointments, allProcedures] = await Promise.all([
+    db.appointment.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true } },
+        procedures: { select: { id: true, procedureId: true, name: true, priceInCents: true } },
+        payment: { select: { status: true, paidAt: true } },
+      },
+    }),
+    db.procedure.findMany({
+      where: { status: "ACTIVE" },
+      select: { id: true, name: true, priceInCents: true, durationMinutes: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   const data = appointments.map(appt => ({
     id: appt.id,
@@ -33,5 +40,5 @@ export default async function AgendamentosPage() {
     createdAt: appt.createdAt.toISOString(),
   }));
 
-  return <AgendamentosClient appointments={data} />;
+  return <AgendamentosClient appointments={data} availableProcedures={allProcedures} />;
 }

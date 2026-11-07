@@ -1765,6 +1765,104 @@ async function main() {
   }
 
   console.log(`\n✅ Seed concluído! ${seededCount} procedimentos inseridos.`);
+
+  // ── Agendamentos de teste ──────────────────────────────────────────────────
+  const testUsers = [
+    { email: "ana.teste@espacovi.com", name: "Ana Silva" },
+    { email: "carla.teste@espacovi.com", name: "Carla Souza" },
+    { email: "julia.teste@espacovi.com", name: "Julia Mendes" },
+  ];
+
+  const createdTestUsers: { id: string }[] = [];
+  for (const u of testUsers) {
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: { email: u.email, name: u.name },
+    });
+    createdTestUsers.push({ id: user.id });
+    console.log("✓ Test user:", u.email);
+  }
+
+  // Buscar alguns procedimentos ativos para os agendamentos
+  const foxGlow   = await prisma.procedure.findUnique({ where: { slug: "fox-glow" } });
+  const volBr     = await prisma.procedure.findUnique({ where: { slug: "volume-brasileiro" } });
+  const design    = await prisma.procedure.findUnique({ where: { slug: "design-sobrancelhas" } });
+  const remocao   = await prisma.procedure.findUnique({ where: { slug: "remocao-cilios" } });
+
+  if (foxGlow && volBr && design && remocao) {
+    // Hoje + alguns dias
+    const now = new Date();
+    const makeDate = (offsetDays: number, hour: number, min = 0) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() + offsetDays);
+      d.setHours(hour, min, 0, 0);
+      return d;
+    };
+
+    const testAppts = [
+      {
+        userId: createdTestUsers[0].id,
+        status: "CONFIRMED" as const,
+        procs: [foxGlow],
+        start: makeDate(1, 10, 0),
+      },
+      {
+        userId: createdTestUsers[1].id,
+        status: "PENDING_PAYMENT" as const,
+        procs: [volBr, design],
+        start: makeDate(2, 14, 0),
+      },
+      {
+        userId: createdTestUsers[2].id,
+        status: "CONFIRMED" as const,
+        procs: [remocao],
+        start: makeDate(3, 11, 0),
+      },
+      {
+        userId: createdTestUsers[0].id,
+        status: "COMPLETED" as const,
+        procs: [foxGlow],
+        start: makeDate(-5, 10, 0),
+      },
+    ];
+
+    for (const ta of testAppts) {
+      const totalPrice    = ta.procs.reduce((s, p) => s + (p.priceInCents ?? 0), 0);
+      const totalDuration = ta.procs.reduce((s, p) => s + (p.durationMinutes ?? 60), 0);
+      const endTime       = new Date(ta.start.getTime() + totalDuration * 60 * 1000);
+
+      const existing = await prisma.appointment.findFirst({
+        where: { userId: ta.userId, startTime: ta.start },
+      });
+      if (existing) {
+        console.log("⏭  Test appointment already exists, skipping.");
+        continue;
+      }
+
+      const appt = await prisma.appointment.create({
+        data: {
+          userId: ta.userId,
+          status: ta.status,
+          startTime: ta.start,
+          endTime,
+          durationMinutes: totalDuration,
+          totalPriceInCents: totalPrice,
+          procedures: {
+            create: ta.procs.map(p => ({
+              procedureId: p.id,
+              name: p.name,
+              priceInCents: p.priceInCents ?? 0,
+              durationMinutes: p.durationMinutes ?? 60,
+            })),
+          },
+        },
+      });
+      console.log("✓ Test appointment:", appt.id, "-", ta.status);
+    }
+  }
+
+  console.log("\n✅ Seed completo com agendamentos de teste.");
 }
 
 main()

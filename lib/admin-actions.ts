@@ -275,6 +275,66 @@ export async function deleteAppointment(appointmentId: string): Promise<{ error?
   }
 }
 
+export async function updateAppointmentProcedures(
+  appointmentId: string,
+  procedureIds: string[],
+  customPriceInCents?: number | null,
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  try {
+    if (procedureIds.length === 0) return { error: "Selecione ao menos um procedimento." };
+
+    const procedures = await db.procedure.findMany({
+      where: { id: { in: procedureIds } },
+      select: { id: true, name: true, priceInCents: true, durationMinutes: true },
+    });
+
+    if (procedures.length !== procedureIds.length) {
+      return { error: "Um ou mais procedimentos não encontrados." };
+    }
+
+    const totalPrice = customPriceInCents != null
+      ? customPriceInCents
+      : procedures.reduce((sum, p) => sum + (p.priceInCents ?? 0), 0);
+
+    const totalDuration = procedures.reduce((sum, p) => sum + (p.durationMinutes ?? 60), 0);
+
+    const appt = await db.appointment.findUnique({ where: { id: appointmentId }, select: { startTime: true } });
+    if (!appt) return { error: "Agendamento não encontrado." };
+
+    const newEndTime = new Date(appt.startTime.getTime() + totalDuration * 60 * 1000);
+
+    await db.$transaction([
+      db.appointmentProcedure.deleteMany({ where: { appointmentId } }),
+      db.appointmentProcedure.createMany({
+        data: procedures.map(p => ({
+          appointmentId,
+          procedureId: p.id,
+          name: p.name,
+          priceInCents: p.priceInCents ?? 0,
+          durationMinutes: p.durationMinutes ?? 60,
+        })),
+      }),
+      db.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          totalPriceInCents: totalPrice,
+          durationMinutes: totalDuration,
+          endTime: newEndTime,
+        },
+      }),
+    ]);
+
+    revalidatePath("/victoria/agendamentos");
+    revalidatePath("/victoria/agenda/dia");
+    revalidatePath("/victoria/agenda/semana");
+    return {};
+  } catch (e) {
+    console.error("updateAppointmentProcedures error:", e);
+    return { error: "Erro ao atualizar procedimentos." };
+  }
+}
+
 export async function rescheduleAppointment(
   appointmentId: string,
   newStartTimeISO: string,
